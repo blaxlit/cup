@@ -594,37 +594,51 @@ export default function App() {
       <div className="btn btn-exit" onClick={() => window.cupid?.close()} />
       <div className="btn btn-settings" onClick={() => setShowSettings((v) => !v)} />
 
-      {/* --- BRAND NEW QUEUE BUTTON --- */}
+      {/* --- STYLED QUEUE BUTTON --- */}
       <button 
-        style={{ position: 'absolute', top: 10, left: 10, zIndex: 100, padding: '5px 10px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontFamily: 'monospace' }} 
+        className={`btn-queue ${showQueue ? 'active' : ''}`}
         onClick={() => setShowQueue(v => !v)}
       >
         queue
       </button>
 
-      {/* --- BRAND NEW QUEUE PANEL --- */}
+      {/* --- QUEUE PANEL --- */}
       {showQueue && (
-        <div className="settings-panel" style={{ right: 'auto', left: '20px' }}>
-          <div className="settings-panel-inner">
-            <div className="settings-label">up next</div>
-            <div className="settings-playlist-list">
+        <div className="queue-panel">
+          <div className="queue-panel-inner">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="settings-label">up next</div>
+              <button 
+                onClick={() => setShowQueue(false)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--color-panel-text)', cursor: 'pointer', fontFamily: "'Rainyhearts', monospace", fontSize: 'calc(11 / 306 * 100vw)', padding: 0 }}
+              >
+                [x]
+              </button>
+            </div>
+            
+            <div className="settings-playlist-list queue-list">
               {source === 'local' ? localTracks.map((t, index) => (
                 <button 
                   key={index} 
                   className={`settings-playlist-item ${local.trackIndex === index ? 'active' : ''}`}
-                  onClick={() => local.playTrack(index)}
+                  onClick={() => local.playTrack?.(index)}
                 >
-                  {t.title} - {t.artist}
+                  {t.title} {t.artist ? `- ${t.artist}` : ''}
                 </button>
               )) : streamTracks.map((t, index) => (
                  <button 
                   key={index} 
                   className={`settings-playlist-item ${streaming.trackIndex === index ? 'active' : ''}`}
-                  onClick={() => streaming.playTrack(index)}
+                  onClick={() => streaming.playTrack?.(index)}
                 >
-                  {t.title} - {t.artist}
+                  {t.title} {t.artist ? `- ${t.artist}` : ''}
                 </button>
               ))}
+              
+              {/* Fallback if queue is totally empty */}
+              {((source === 'local' && localTracks.length === 0) || (source === 'streaming' && streamTracks.length === 0)) && (
+                <div className="settings-label" style={{ opacity: 0.5, marginTop: '5px' }}>queue is empty</div>
+              )}
             </div>
           </div>
         </div>

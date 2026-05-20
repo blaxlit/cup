@@ -677,10 +677,11 @@
 }
 
 /* --- QUEUE SYSTEM --- */
+/* --- QUEUE SYSTEM --- */
 .btn-queue {
   position: absolute;
-  left: calc((120 - 110) / 306 * 100vw);
-  top: calc((75 - 23) / 306 * 100vw);
+  left: calc((129 - 110) / 306 * 100vw);
+  top: calc((85 - 23) / 306 * 100vw);
   font-family: 'Rainyhearts', monospace;
   font-size: calc(12 / 306 * 100vw);
   background: var(--color-primary);
@@ -689,7 +690,7 @@
   border-radius: calc(3 / 306 * 100vw);
   padding: calc(2 / 306 * 100vw) calc(6 / 306 * 100vw);
   cursor: pointer;
-  z-index: 100;
+  z-index: 310; /* <--- This fixes the click issue! */
   -webkit-app-region: no-drag;
   outline: none;
 }
