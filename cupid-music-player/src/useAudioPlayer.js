@@ -145,11 +145,8 @@ export default function useAudioPlayer(tracks, playMode = 'normal', getAudioPath
 
   const playTrack = useCallback((index) => {
     setTrackIndex(index);
-    if (!isPlaying) {
-      audio.play().catch(() => {});
-      setIsPlaying(true);
-    }
-  }, [isPlaying]);
+    setIsPlaying(true);
+  }, []);
 
   const seek = useCallback((fraction) => {
     if (audio.duration) {
