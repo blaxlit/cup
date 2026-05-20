@@ -608,7 +608,7 @@ export default function App() {
           <div className="settings-panel-inner">
             <div className="settings-label">up next</div>
             <div className="settings-playlist-list">
-              {player.track === local.track ? localTracks.map((t, index) => (
+              {source === 'local' ? localTracks.map((t, index) => (
                 <button 
                   key={index} 
                   className={`settings-playlist-item ${local.trackIndex === index ? 'active' : ''}`}
