@@ -655,46 +655,6 @@ export default function App() {
         </>
       )}
 
-      {/* --- BRAND NEW QUEUE BUTTON --- */}
-      <button 
-        className={`btn-queue ${showQueue ? 'active' : ''}`}
-        onClick={() => setShowQueue(v => !v)}
-      >
-        queue
-      </button>
-
-      {/* --- BRAND NEW QUEUE PANEL --- */}
-      {showQueue && (
-        <div className="queue-panel">
-          <div className="queue-panel-inner">
-            <div className="settings-label">up next</div>
-            <div className="settings-playlist-list queue-list">
-              {source === 'local' ? localTracks.map((t, index) => (
-                <button 
-                  key={index} 
-                  className={`settings-playlist-item ${local.trackIndex === index ? 'active' : ''}`}
-                  onClick={() => local.playTrack?.(index)}
-                >
-                  {t.title} {t.artist ? `- ${t.artist}` : ''}
-                </button>
-              )) : streamTracks.map((t, index) => (
-                 <button 
-                  key={index} 
-                  className={`settings-playlist-item ${streaming.trackIndex === index ? 'active' : ''}`}
-                  onClick={() => streaming.playTrack?.(index)}
-                >
-                  {t.title} {t.artist ? `- ${t.artist}` : ''}
-                </button>
-              ))}
-              
-              {/* Fallback if queue is totally empty */}
-              {((source === 'local' && localTracks.length === 0) || (source === 'streaming' && streamTracks.length === 0)) && (
-                <div className="settings-label" style={{ opacity: 0.5, marginTop: '5px' }}>queue is empty</div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {showSettings && (
         <div className="settings-panel">
