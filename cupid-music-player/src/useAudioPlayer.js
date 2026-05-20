@@ -180,7 +180,8 @@ export default function useAudioPlayer(tracks, playMode = 'normal', getAudioPath
     duration,
     currentTime,
     togglePlay,
-    pause, // <-- ADD THIS LINE
+    pause,
+    playTrack, // <--- ADD THIS EXACT LINE
     next,
     prev,
     seek,
