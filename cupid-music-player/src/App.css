@@ -416,14 +416,18 @@
 }
 
 /* --- SONG EDIT MENU TRIGGER --- */
+/* --- SONG EDIT MENU TRIGGER --- */
 .btn-song-menu {
   position: absolute;
   top: 0;
-  right: calc(-20 / 306 * 100vw); /* <-- This negative number pushes it way further right! */
-  background: rgba(226, 152, 152, 0.9);
-  border: 1px solid var(--color-secondary);
+  right: calc(-20 / 306 * 100vw);
+  background: rgba(15, 15, 15, 0.9);
+  
+  /* Use panel-text so it pops brightly in BOTH themes! */
+  border: 1px solid var(--color-panel-text); 
+  color: var(--color-panel-text); 
+  
   border-radius: 4px;
-  color: #ffffff;
   font-size: calc(14 / 306 * 100vw);
   font-family: 'Rainyhearts', monospace;
   cursor: pointer;
@@ -434,7 +438,9 @@
 }
 
 .btn-song-menu:hover {
-  background: var(--color-secondary);
+  /* Invert the colors when hovered */
+  background: var(--color-panel-text);
+  color: var(--color-primary); 
 }
 
 /* --- EDIT BUTTONS --- */
