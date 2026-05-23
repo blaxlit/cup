@@ -1,4 +1,23 @@
 [
-  { "file": "Official MV星降る海  Aqu3ra  月見ヤチヨ(cv.早見沙織) from 超かぐや姫.mp3", "title": "Starry Sea", "artist": "Aqu3ra & Yachiyo", "album": "超かぐや姫", "art": "https://pbs.twimg.com/media/G8a4vzXaUAAF7EP.jpg" },
-  { "file": "HoYoHoYoにしてあげる  初音ミク銀狼LV.999崩壊スターレイル.mp3", "title": "HoYoHoYo ni shite ageru", "artist": "SliverWolf & Hatsune Miku", "album": "崩壊スターレイル", "art": "https://i.ytimg.com/vi/A7KbelltKEM/maxresdefault.jpg" }
+  {
+    "file": "Official MV星降る海  Aqu3ra  月見ヤチヨ(cv.早見沙織) from 超かぐや姫.mp3",
+    "title": "Starry Sea",
+    "artist": "Aqu3ra & Yachiyo",
+    "album": "超かぐや姫",
+    "art": "https://pbs.twimg.com/media/G8a4vzXaUAAF7EP.jpg"
+  },
+  {
+    "file": "HoYoHoYoにしてあげる  初音ミク銀狼LV.999崩壊スターレイル.mp3",
+    "title": "HoYoHoYo ni shite ageru",
+    "artist": "SliverWolf & Hatsune Miku",
+    "album": "崩壊スターレイル",
+    "art": "https://i.ytimg.com/vi/A7KbelltKEM/maxresdefault.jpg"
+  },
+  {
+    "file": "愛言葉  音ノ瀬らこ (cover).mp3",
+    "title": "Love Words IV",
+    "artist": "Deco*27 (Rako cover)",
+    "album": "",
+    "art": "https://i.ytimg.com/vi/log5cuEG0jE/mqdefault.jpg"
+  }
 ]

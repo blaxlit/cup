@@ -197,6 +197,10 @@ export default function App() {
   const [loadingPlaylists, setLoadingPlaylists] = useState(false);
   const [loadingPlaylist, setLoadingPlaylist] = useState(false);
   const [settingsError, setSettingsError] = useState(null);
+  const [addingSong, setAddingSong] = useState(false);
+  const [newSongTitle, setNewSongTitle] = useState('');
+  const [newSongArtist, setNewSongArtist] = useState('');
+  const [newSongArt, setNewSongArt] = useState('');
   
   const [musicService, setMusicService] = useState(() => {
     try {
@@ -685,41 +689,74 @@ export default function App() {
             />
 
             {musicService === 'local' && (
-  <div className="settings-theme-row">
-    <button className="settings-theme-btn" onClick={loadLocalPlaylist}>
-      reload
-    </button>
-    <button 
-      className="settings-theme-btn" 
-      onClick={async () => {
-        // Quick browser prompts to get song details (you could replace this with a custom React modal later!)
-        const title = prompt("Enter Song Title:");
-        if (title === null) return; // User cancelled
-        
-        const artist = prompt("Enter Artist:");
-        if (artist === null) return;
+  !addingSong ? (
+    <div className="settings-theme-row">
+      <button className="settings-theme-btn" onClick={loadLocalPlaylist}>
+        reload
+      </button>
+      <button className="settings-theme-btn" onClick={() => setAddingSong(true)}>
+        add song +
+      </button>
+    </div>
+  ) : (
+    <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+      <input 
+        className="settings-input" 
+        placeholder="Title (leave blank for filename)" 
+        value={newSongTitle} 
+        onChange={(e) => setNewSongTitle(e.target.value)} 
+      />
+      <input 
+        className="settings-input" 
+        placeholder="Artist" 
+        value={newSongArtist} 
+        onChange={(e) => setNewSongArtist(e.target.value)} 
+      />
+      <input 
+        className="settings-input" 
+        placeholder="Art URL (optional)" 
+        value={newSongArt} 
+        onChange={(e) => setNewSongArt(e.target.value)} 
+      />
+      <div className="settings-theme-row" style={{ marginTop: '5px' }}>
+        <button 
+          className="settings-theme-btn" 
+          onClick={() => {
+            setAddingSong(false);
+            setSettingsError(null);
+          }}
+        >
+          cancel
+        </button>
+        <button 
+          className="settings-theme-btn" 
+          onClick={async () => {
+            setSettingsError(null);
+            
+            // Call the Electron backend
+            const success = await window.cupid?.addLocalSong({ 
+              title: newSongTitle.trim(), 
+              artist: newSongArtist.trim() || "Unknown Artist", 
+              art: newSongArt.trim() 
+            });
 
-        const art = prompt("Enter Art URL (leave blank for none):");
-        if (art === null) return;
-
-        // Call our new Electron function
-        const success = await window.cupid?.addLocalSong({ 
-          title: title.trim(), 
-          artist: artist.trim(), 
-          art: art.trim() 
-        });
-
-        if (success) {
-          // Automatically reload the playlist so the new song shows up instantly!
-          loadLocalPlaylist();
-        } else {
-          setSettingsError("Failed to add song. Check console.");
-        }
-      }}
-    >
-      add song +
-    </button>
-  </div>
+            if (success) {
+              // Reload playlist and reset form
+              loadLocalPlaylist();
+              setAddingSong(false);
+              setNewSongTitle('');
+              setNewSongArtist('');
+              setNewSongArt('');
+            } else {
+              setSettingsError("Failed to add song. Did you pick a file?");
+            }
+          }}
+        >
+          pick file & save
+        </button>
+      </div>
+    </div>
+  )
 )}
             
 
