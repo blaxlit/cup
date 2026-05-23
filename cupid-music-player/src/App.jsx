@@ -205,14 +205,6 @@ export default function App() {
   const [isEditingCurrent, setIsEditingCurrent] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editArtist, setEditArtist] = useState('');
-
-  // 🚨 ADD THIS NEW BLOCK 🚨
-  useEffect(() => {
-    // If the song changes, instantly cancel editing and close the menu
-    // to prevent saving metadata to the wrong track!
-    setIsEditingCurrent(false);
-    setShowSongMenu(false);
-  }, [track.title]); // React watches the title; if it changes, this runs.
   
   const [musicService, setMusicService] = useState(() => {
     try {
