@@ -525,18 +525,34 @@ export default function App() {
 
       <img src={assets.albumFrame} className="layer album-frame-layer" alt="" draggable={false} />
 
-      <div className="now-playing">
+      <div className="now-playing" style={{ pointerEvents: 'auto', zIndex: 50 }}>
         {isEditingCurrent ? (
-          <div className="track-info" style={{ pointerEvents: 'auto' }}>
+          <div className="track-info" style={{ position: 'relative', width: '100%' }}>
+            {/* Input 1: Title (Forced Dark Background) */}
             <input 
               className="settings-input" 
-              style={{ width: '100%', marginBottom: '4px', fontSize: '10px' }} 
+              style={{ 
+                width: '100%', 
+                marginBottom: '4px', 
+                fontSize: '12px',
+                backgroundColor: 'rgba(10, 10, 10, 0.85)', // Much darker grey/black
+                color: '#ffffff', // Bright white text
+                border: '1px solid #555' // Subtle visible border
+              }} 
               value={editTitle} 
               onChange={(e) => setEditTitle(e.target.value)} 
             />
+            {/* Input 2: Artist (Forced Dark Background) */}
             <input 
               className="settings-input" 
-              style={{ width: '100%', marginBottom: '4px', fontSize: '10px' }} 
+              style={{ 
+                width: '100%', 
+                marginBottom: '4px', 
+                fontSize: '12px',
+                backgroundColor: 'rgba(10, 10, 10, 0.85)',
+                color: '#ffffff',
+                border: '1px solid #555'
+              }} 
               value={editArtist} 
               onChange={(e) => setEditArtist(e.target.value)} 
             />
@@ -564,20 +580,24 @@ export default function App() {
             </div>
           </div>
         ) : (
-          <div className="track-info" style={{ position: 'relative' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="track-info" style={{ position: 'relative', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
               <div className="now-playing-label">now playing...</div>
               
-              {/* Only show the 3-dot menu if we are playing local files and a track is loaded */}
+              {/* Force the 3-dot menu to exactly the top-right edge */}
               {source === 'local' && track.title !== 'No track' && (
                 <button 
                   onClick={() => setShowSongMenu((v) => !v)}
                   style={{ 
-                    background: 'transparent', 
+                    position: 'absolute',
+                    top: '-5px',    // Push to the absolute top edge
+                    right: '-5px',  // Push to the absolute right edge
+                    background: 'transparent', // Make it blend perfectly
                     border: 'none', 
-                    color: 'var(--color-panel-text)', 
+                    color: 'rgba(255, 255, 255, 0.7)', // Slightly dimmed white
                     cursor: 'pointer', 
-                    pointerEvents: 'auto',
+                    padding: '2px 6px',
+                    fontSize: '14px', // Slightly larger for easier clicking
                     fontFamily: "'Rainyhearts', monospace"
                   }}
                 >
@@ -593,19 +613,21 @@ export default function App() {
             {showSongMenu && (
               <div style={{ 
                 position: 'absolute', 
-                right: '-10px', 
-                top: '20px', 
-                background: 'var(--color-panel-bg)', 
-                border: '1px solid var(--color-panel-border)', 
+                right: '-5px', 
+                top: '15px', // Adjusted to pop out right below the pinned dots
+                background: 'rgba(15, 15, 15, 0.95)', // Made menu background darker too
+                border: '1px solid #444', 
+                borderRadius: '4px',
                 padding: '5px', 
-                zIndex: 100, 
-                pointerEvents: 'auto',
+                zIndex: 999, 
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '2px'
+                gap: '4px',
+                minWidth: '80px'
               }}>
                 <button 
                   className="settings-playlist-item" 
+                  style={{ textAlign: 'center', width: '100%' }}
                   onClick={() => { 
                     setShowSongMenu(false); 
                     setEditTitle(track.title); 
@@ -617,19 +639,18 @@ export default function App() {
                 </button>
                 <button 
                   className="settings-playlist-item" 
-                  style={{ color: '#ff6b6b' }} 
+                  style={{ color: '#ff6b6b', textAlign: 'center', width: '100%' }} 
                   onClick={async () => {
                     const currentFile = localTracks[local.trackIndex]?.file;
                     if (!currentFile) return;
                     
-                    // Note: window.confirm() DOES work natively in Electron!
                     const confirmDelete = window.confirm(`Delete ${track.title}?`);
                     if (confirmDelete) {
                       const success = await window.cupid?.deleteLocalSong(currentFile);
                       if (success) {
                         setShowSongMenu(false);
-                        next(); // Skip to the next song immediately 
-                        setTimeout(() => loadLocalPlaylist(), 300); // Reload playlist JSON
+                        next(); 
+                        setTimeout(() => loadLocalPlaylist(), 300); 
                       }
                     }
                   }}
