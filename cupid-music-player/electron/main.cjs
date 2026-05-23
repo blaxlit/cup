@@ -615,6 +615,52 @@ ipcMain.handle('add-local-song', async (_e, metadata) => {
   }
 });
 
+ipcMain.handle('edit-local-song', async (_e, { filename, metadata }) => {
+  try {
+    const playlistPath = userPlaylistFile();
+    const raw = await fs.promises.readFile(playlistPath, 'utf8');
+    let playlist = JSON.parse(raw);
+    
+    // Find the song by its exact filename and update it
+    const songIndex = playlist.findIndex(s => s.file === filename);
+    if (songIndex !== -1) {
+      playlist[songIndex] = { ...playlist[songIndex], ...metadata };
+      await fs.promises.writeFile(playlistPath, JSON.stringify(playlist, null, 2));
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.error('[edit error]', err.message);
+    return false;
+  }
+});
+
+ipcMain.handle('delete-local-song', async (_e, filename) => {
+  try {
+    const playlistPath = userPlaylistFile();
+    const raw = await fs.promises.readFile(playlistPath, 'utf8');
+    let playlist = JSON.parse(raw);
+    
+    // Remove from the JSON array
+    playlist = playlist.filter(s => s.file !== filename);
+    await fs.promises.writeFile(playlistPath, JSON.stringify(playlist, null, 2));
+    
+    // Attempt to delete the physical audio file
+    // (We wrap this in a try/catch because if the song is currently playing, 
+    // the OS might lock the file. If it fails, it just stays hidden in the folder).
+    try {
+      await fs.promises.unlink(path.join(userAudioDir(), filename));
+    } catch (e) {
+      console.warn('Could not delete physical file (might be locked):', e.message);
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('[delete error]', err.message);
+    return false;
+  }
+});
+
 ipcMain.handle('get-stream-url-by-id', (_e, videoId) => {
   return streamUrlForVideoId(videoId);
 });

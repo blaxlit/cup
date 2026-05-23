@@ -201,6 +201,10 @@ export default function App() {
   const [newSongTitle, setNewSongTitle] = useState('');
   const [newSongArtist, setNewSongArtist] = useState('');
   const [newSongArt, setNewSongArt] = useState('');
+  const [showSongMenu, setShowSongMenu] = useState(false);
+  const [isEditingCurrent, setIsEditingCurrent] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editArtist, setEditArtist] = useState('');
   
   const [musicService, setMusicService] = useState(() => {
     try {
@@ -522,11 +526,120 @@ export default function App() {
       <img src={assets.albumFrame} className="layer album-frame-layer" alt="" draggable={false} />
 
       <div className="now-playing">
-        <div className="track-info">
-          <div className="now-playing-label">now playing...</div>
-          <MarqueeText className="track-title" text={track.title} />
-          <div className="track-artist">by {track.artist}</div>
-        </div>
+        {isEditingCurrent ? (
+          <div className="track-info" style={{ pointerEvents: 'auto' }}>
+            <input 
+              className="settings-input" 
+              style={{ width: '100%', marginBottom: '4px', fontSize: '10px' }} 
+              value={editTitle} 
+              onChange={(e) => setEditTitle(e.target.value)} 
+            />
+            <input 
+              className="settings-input" 
+              style={{ width: '100%', marginBottom: '4px', fontSize: '10px' }} 
+              value={editArtist} 
+              onChange={(e) => setEditArtist(e.target.value)} 
+            />
+            <div style={{ display: 'flex', gap: '5px' }}>
+              <button className="settings-theme-btn" onClick={() => setIsEditingCurrent(false)}>cancel</button>
+              <button 
+                className="settings-theme-btn" 
+                onClick={async () => {
+                  const currentFile = localTracks[local.trackIndex]?.file;
+                  if (!currentFile) return;
+                  
+                  const success = await window.cupid?.editLocalSong({
+                    filename: currentFile,
+                    metadata: { title: editTitle, artist: editArtist }
+                  });
+                  
+                  if (success) {
+                    setIsEditingCurrent(false);
+                    loadLocalPlaylist();
+                  }
+                }}
+              >
+                save
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="track-info" style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="now-playing-label">now playing...</div>
+              
+              {/* Only show the 3-dot menu if we are playing local files and a track is loaded */}
+              {source === 'local' && track.title !== 'No track' && (
+                <button 
+                  onClick={() => setShowSongMenu((v) => !v)}
+                  style={{ 
+                    background: 'transparent', 
+                    border: 'none', 
+                    color: 'var(--color-panel-text)', 
+                    cursor: 'pointer', 
+                    pointerEvents: 'auto',
+                    fontFamily: "'Rainyhearts', monospace"
+                  }}
+                >
+                  ⋮
+                </button>
+              )}
+            </div>
+            
+            <MarqueeText className="track-title" text={track.title} />
+            <div className="track-artist">by {track.artist}</div>
+
+            {/* The Dropdown Menu */}
+            {showSongMenu && (
+              <div style={{ 
+                position: 'absolute', 
+                right: '-10px', 
+                top: '20px', 
+                background: 'var(--color-panel-bg)', 
+                border: '1px solid var(--color-panel-border)', 
+                padding: '5px', 
+                zIndex: 100, 
+                pointerEvents: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px'
+              }}>
+                <button 
+                  className="settings-playlist-item" 
+                  onClick={() => { 
+                    setShowSongMenu(false); 
+                    setEditTitle(track.title); 
+                    setEditArtist(track.artist);
+                    setIsEditingCurrent(true); 
+                  }}
+                >
+                  edit
+                </button>
+                <button 
+                  className="settings-playlist-item" 
+                  style={{ color: '#ff6b6b' }} 
+                  onClick={async () => {
+                    const currentFile = localTracks[local.trackIndex]?.file;
+                    if (!currentFile) return;
+                    
+                    // Note: window.confirm() DOES work natively in Electron!
+                    const confirmDelete = window.confirm(`Delete ${track.title}?`);
+                    if (confirmDelete) {
+                      const success = await window.cupid?.deleteLocalSong(currentFile);
+                      if (success) {
+                        setShowSongMenu(false);
+                        next(); // Skip to the next song immediately 
+                        setTimeout(() => loadLocalPlaylist(), 300); // Reload playlist JSON
+                      }
+                    }
+                  }}
+                >
+                  delete
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="time-display">
