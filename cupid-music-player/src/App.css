@@ -407,11 +407,65 @@
   position: absolute;
   left: calc((195 - 110) / 306 * 100vw);
   top: calc((355 - 23) / 306 * 100vw);
+  width: calc(170 / 306 * 100vw); /* <--- ADD THIS LINE */
   display: flex;
   flex-direction: column;
   justify-content: center;
   z-index: 50;
   pointer-events: none;
+}
+
+/* --- SONG EDIT MENU TRIGGER --- */
+.btn-song-menu {
+  position: absolute;
+  top: 0;
+  right: calc(-20 / 306 * 100vw); /* <-- This negative number pushes it way further right! */
+  background: rgba(226, 152, 152, 0.9);
+  border: 1px solid var(--color-secondary);
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: calc(14 / 306 * 100vw);
+  font-family: 'Rainyhearts', monospace;
+  cursor: pointer;
+  pointer-events: auto;
+  padding: calc(2 / 306 * 100vw) calc(6 / 306 * 100vw);
+  line-height: 1;
+  z-index: 100;
+}
+
+.btn-song-menu:hover {
+  background: var(--color-secondary);
+}
+
+/* --- EDIT BUTTONS --- */
+.btn-edit-action {
+  font-family: 'Rainyhearts', monospace;
+  font-size: calc(10 / 306 * 100vw);
+  background: rgba(10, 10, 10, 0.9);
+  border-radius: calc(2 / 306 * 100vw);
+  padding: calc(3 / 306 * 100vw) calc(6 / 306 * 100vw);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.btn-edit-cancel {
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+}
+
+.btn-edit-cancel:hover {
+  background: #ff6b6b;
+  color: #000000; /* Turns text black when hovered so you can read it */
+}
+
+.btn-edit-save {
+  color: #51cf66;
+  border: 1px solid #51cf66;
+}
+
+.btn-edit-save:hover {
+  background: #51cf66;
+  color: #000000;
 }
 
 .record-player {

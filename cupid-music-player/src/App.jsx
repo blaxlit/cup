@@ -556,10 +556,16 @@ export default function App() {
               value={editArtist} 
               onChange={(e) => setEditArtist(e.target.value)} 
             />
-            <div style={{ display: 'flex', gap: '5px' }}>
-              <button className="settings-theme-btn" onClick={() => setIsEditingCurrent(false)}>cancel</button>
+            <div style={{ display: 'flex', gap: '5px', marginTop: '2px' }}>
               <button 
-                className="settings-theme-btn" 
+                className="btn-edit-action btn-edit-cancel" 
+                onClick={() => setIsEditingCurrent(false)}
+              >
+                cancel
+              </button>
+              
+              <button 
+                className="btn-edit-action btn-edit-save" 
                 onClick={async () => {
                   const currentFile = localTracks[local.trackIndex]?.file;
                   if (!currentFile) return;
@@ -584,26 +590,15 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
               <div className="now-playing-label">now playing...</div>
               
-              {/* Force the 3-dot menu to exactly the top-right edge */}
-              {source === 'local' && track.title !== 'No track' && (
-                <button 
-                  onClick={() => setShowSongMenu((v) => !v)}
-                  style={{ 
-                    position: 'absolute',
-                    top: '-5px',    // Push to the absolute top edge
-                    right: '-5px',  // Push to the absolute right edge
-                    background: 'transparent', // Make it blend perfectly
-                    border: 'none', 
-                    color: 'rgba(255, 255, 255, 0.7)', // Slightly dimmed white
-                    cursor: 'pointer', 
-                    padding: '2px 6px',
-                    fontSize: '14px', // Slightly larger for easier clicking
-                    fontFamily: "'Rainyhearts', monospace"
-                  }}
-                >
-                  ⋮
-                </button>
-              )}
+              {/* The 3-dot menu button */}
+{source === 'local' && track.title !== 'No track' && (
+  <button 
+    className="btn-song-menu"
+    onClick={() => setShowSongMenu((v) => !v)}
+  >
+    ⋮
+  </button>
+)}
             </div>
             
             <MarqueeText className="track-title" text={track.title} />
