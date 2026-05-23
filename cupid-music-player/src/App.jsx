@@ -685,10 +685,43 @@ export default function App() {
             />
 
             {musicService === 'local' && (
-              <button className="settings-theme-btn" onClick={loadLocalPlaylist}>
-                reload
-              </button>
-            )}
+  <div className="settings-theme-row">
+    <button className="settings-theme-btn" onClick={loadLocalPlaylist}>
+      reload
+    </button>
+    <button 
+      className="settings-theme-btn" 
+      onClick={async () => {
+        // Quick browser prompts to get song details (you could replace this with a custom React modal later!)
+        const title = prompt("Enter Song Title:");
+        if (title === null) return; // User cancelled
+        
+        const artist = prompt("Enter Artist:");
+        if (artist === null) return;
+
+        const art = prompt("Enter Art URL (leave blank for none):");
+        if (art === null) return;
+
+        // Call our new Electron function
+        const success = await window.cupid?.addLocalSong({ 
+          title: title.trim(), 
+          artist: artist.trim(), 
+          art: art.trim() 
+        });
+
+        if (success) {
+          // Automatically reload the playlist so the new song shows up instantly!
+          loadLocalPlaylist();
+        } else {
+          setSettingsError("Failed to add song. Check console.");
+        }
+      }}
+    >
+      add song +
+    </button>
+  </div>
+)}
+            
 
             {musicService === 'spotify' && (
               !spotifyConnected ? (

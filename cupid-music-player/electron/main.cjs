@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { app, BrowserWindow, ipcMain, screen, shell, protocol, net } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, shell, protocol, net, dialog } = require('electron');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const path = require('node:path');
@@ -566,6 +566,53 @@ ipcMain.handle('open-music-folder', async () => {
   await fs.promises.mkdir(dir, { recursive: true });
   await shell.openPath(dir);
   return dir;
+});
+
+ipcMain.handle('add-local-song', async (_e, metadata) => {
+  try {
+    // 1. Open File Picker for the audio file
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: 'Select Audio File',
+      properties: ['openFile'],
+      filters: [{ name: 'Audio', extensions: ['mp3', 'wav', 'm4a', 'flac', 'ogg'] }]
+    });
+
+    if (canceled || filePaths.length === 0) return false;
+
+    const sourcePath = filePaths[0];
+    const fileName = path.basename(sourcePath);
+    const destPath = path.join(userAudioDir(), fileName);
+
+    // 2. Copy the file into the AppData audio folder
+    await fs.promises.copyFile(sourcePath, destPath);
+
+    // 3. Read the existing playlist.json
+    const playlistPath = userPlaylistFile();
+    let playlist = [];
+    try {
+      const raw = await fs.promises.readFile(playlistPath, 'utf8');
+      playlist = JSON.parse(raw);
+    } catch (err) {
+      // If it fails or doesn't exist, we just start with an empty array
+    }
+
+    // 4. Append the new song with the provided details
+    playlist.push({
+      file: fileName,
+      title: metadata.title || fileName.split('.')[0], // fallback to filename
+      artist: metadata.artist || "Unknown Artist",
+      album: metadata.album || "",
+      art: metadata.art || ""
+    });
+
+    // 5. Write back to playlist.json
+    await fs.promises.writeFile(playlistPath, JSON.stringify(playlist, null, 2));
+    
+    return true; // Success!
+  } catch (err) {
+    console.error('[add-local-song error]', err.message);
+    return false;
+  }
 });
 
 ipcMain.handle('get-stream-url-by-id', (_e, videoId) => {
