@@ -12,10 +12,10 @@
 }
 
 .player.theme-blue {
-  --color-title: #063940;
-  --color-primary: #063940;
-  --color-secondary: #1a6b6b;
-  --color-panel-text: #C8D3F6;
+  --color-title: #7E8691;       /* Soft slate */
+  --color-primary: #15171A;     /* Deep charcoal background */
+  --color-secondary: #30363D;   /* Dark grey borders/accents */
+  --color-panel-text: #E6EDF3;  /* Bright readable text */
 }
 
 
@@ -419,11 +419,11 @@
 .btn-song-menu {
   position: absolute;
   top: 0;
-  right: calc(-20 / 306 * 100vw); /* <-- This negative number pushes it way further right! */
-  background: rgba(226, 152, 152, 0.9);
-  border: 1px solid var(--color-secondary);
+  right: calc(-20 / 306 * 100vw);
+  background: var(--color-primary); /* Automatically matches theme background */
+  border: 1px solid var(--color-secondary); /* Automatically matches theme border */
+  color: var(--color-panel-text); 
   border-radius: 4px;
-  color: #ffffff;
   font-size: calc(14 / 306 * 100vw);
   font-family: 'Rainyhearts', monospace;
   cursor: pointer;
@@ -434,7 +434,8 @@
 }
 
 .btn-song-menu:hover {
-  background: var(--color-secondary);
+  background: var(--color-panel-text);
+  color: var(--color-primary); 
 }
 
 /* --- EDIT BUTTONS --- */

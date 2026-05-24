@@ -26,10 +26,18 @@ export function parsePlaylistUrl(input) {
   if (!input) return null;
   const trimmed = input.trim();
 
-  // Bare ID — YouTube playlist IDs start with PL, LL, FL, RD, UU, UL, OL
+  // If it's ANY YouTube link (video or playlist), pass it through
+  if (trimmed.includes('youtube.com') || trimmed.includes('youtu.be')) {
+    return trimmed;
+  }
+
+  // Bare ID fallback (starts with PL, etc.)
   if (/^[A-Za-z0-9_-]{13,}$/.test(trimmed) && /^(PL|LL|FL|RD|UU|UL|OL)/.test(trimmed)) {
     return trimmed;
   }
+
+  return null;
+}
 
   try {
     const url = new URL(trimmed);

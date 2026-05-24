@@ -2,18 +2,13 @@ import { useCallback, useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import './App.css';
 import useAudioPlayer from './useAudioPlayer';
-import useSpotifyPlayer from './useSpotifyPlayer';
+import useSpotifyPlayer from './useSpotifyPlayer'; // We still need this hook for streaming YouTube!
 import useTheme from './useTheme';
-import { login as spotifyLogin, handleCallback, isLoggedIn as isSpotifyLoggedIn, logout as spotifyLogout } from './spotify/auth.js';
-import { fetchPlaylistTracks as fetchSpotifyTracks, fetchMyPlaylists as fetchSpotifyPlaylists } from './spotify/api.js';
-import { login as appleLogin, logout as appleLogout, isLoggedIn as isAppleLoggedIn, initMusicKit } from './apple/auth.js';
-import { fetchMyPlaylists as fetchApplePlaylists, fetchPlaylistTracks as fetchAppleTracks } from './apple/api.js';
 import {
   login as youtubeLogin,
   logout as youtubeLogout,
   isLoggedIn as isYouTubeLoggedIn,
   isConfigured as isYouTubeConfigured,
-  cancelLogin as cancelYouTubeLogin,
 } from './youtube/auth.js';
 import {
   parsePlaylistUrl as parseYouTubePlaylistUrl,
@@ -185,14 +180,10 @@ function MarqueeText({ className, text }) {
 
 export default function App() {
   const [source, setSource] = useState('local'); 
-  const [spotifyConnected, setSpotifyConnected] = useState(isSpotifyLoggedIn());
-  const [appleConnected, setAppleConnected] = useState(isAppleLoggedIn());
   const [youtubeConnected, setYoutubeConnected] = useState(isYouTubeLoggedIn());
   const [youtubeLoggingIn, setYoutubeLoggingIn] = useState(false);
   const [youtubeUrlInput, setYoutubeUrlInput] = useState('');
   const [streamTracks, setStreamTracks] = useState([]);
-  const [spotifyPlaylists, setSpotifyPlaylists] = useState([]);
-  const [applePlaylists, setApplePlaylists] = useState([]);
   const [youtubePlaylists, setYoutubePlaylists] = useState([]);
   const [loadingPlaylists, setLoadingPlaylists] = useState(false);
   const [loadingPlaylist, setLoadingPlaylist] = useState(false);
@@ -202,14 +193,17 @@ export default function App() {
   const [newSongArtist, setNewSongArtist] = useState('');
   const [newSongArt, setNewSongArt] = useState('');
   const [showSongMenu, setShowSongMenu] = useState(false);
+  
+  // EDIT FIX: Save the explicit filename we are editing so it NEVER overwrites the wrong song
+  const [editingFilename, setEditingFilename] = useState(null); 
   const [isEditingCurrent, setIsEditingCurrent] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editArtist, setEditArtist] = useState('');
-  
+
   const [musicService, setMusicService] = useState(() => {
     try {
       const stored = localStorage.getItem('cupid-player-music-service');
-      if (stored === 'spotify' || stored === 'apple' || stored === 'youtube' || stored === 'local') return stored;
+      if (stored === 'youtube' || stored === 'local') return stored;
     } catch { }
     return 'local';
   }); 
@@ -234,10 +228,9 @@ export default function App() {
   useEffect(() => { loadLocalPlaylist(); }, [loadLocalPlaylist]);
 
   const local = useAudioPlayer(localTracks, playMode, window.cupid?.getLocalAudioPath);
-  const streaming = useSpotifyPlayer(streamTracks, playMode);
+  const streaming = useSpotifyPlayer(streamTracks, playMode); // Handles YouTube Streams
   const player = source === 'streaming' ? streaming : local;
 
-  // Fix the overlap bug when switching sources
   useEffect(() => {
     if (source === 'streaming') {
       if (local.isPlaying && local.pause) local.pause();
@@ -266,24 +259,6 @@ export default function App() {
     setPlayMode((m) => m === 'normal' ? 'shuffle' : m === 'shuffle' ? 'repeat' : 'normal');
   }, []);
 
-  const loadSpotifyPlaylists = useCallback((silent = false) => {
-    setLoadingPlaylists(true);
-    if (!silent) setSettingsError(null);
-    fetchSpotifyPlaylists()
-      .then((p) => { setSpotifyPlaylists(p); setSettingsError(null); })
-      .catch((err) => { if (!silent) setSettingsError(err.message); })
-      .finally(() => setLoadingPlaylists(false));
-  }, []);
-
-  const loadApplePlaylists = useCallback((silent = false) => {
-    setLoadingPlaylists(true);
-    if (!silent) setSettingsError(null);
-    fetchApplePlaylists()
-      .then((p) => { setApplePlaylists(p); setSettingsError(null); })
-      .catch((err) => { if (!silent) setSettingsError(err.message); })
-      .finally(() => setLoadingPlaylists(false));
-  }, []);
-
   const loadYoutubePlaylists = useCallback((silent = false) => {
     setLoadingPlaylists(true);
     if (!silent) setSettingsError(null);
@@ -297,14 +272,14 @@ export default function App() {
     setSettingsError(null);
     const parsed = parseYouTubePlaylistUrl(rawInput);
     if (!parsed) {
-      setSettingsError('Not a recognised YouTube playlist URL');
+      setSettingsError('Not a recognised YouTube URL');
       return;
     }
     setLoadingPlaylist(true);
     try {
       const tracks = await fetchYouTubePlaylistByUrl(rawInput);
       if (tracks.length === 0) {
-        setSettingsError('Playlist is empty or private');
+        setSettingsError('Playlist/Video is empty or private');
         return;
       }
       setStreamTracks(tracks);
@@ -318,35 +293,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    async function checkCallback() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has('code')) {
-        try {
-          await handleCallback();
-          setSpotifyConnected(true);
-          setTimeout(() => loadSpotifyPlaylists(true), 500);
-        } catch (err) {
-          setSettingsError(err.message);
-        }
-      } else {
-        if (isSpotifyLoggedIn()) loadSpotifyPlaylists(true);
-        if (isAppleLoggedIn()) loadApplePlaylists(true);
-        if (isYouTubeLoggedIn()) loadYoutubePlaylists(true);
-      }
-    }
-    checkCallback();
+    if (isYouTubeLoggedIn()) loadYoutubePlaylists(true);
   }, []);
 
   const loadPlaylist = useCallback(async (id, service) => {
     setLoadingPlaylist(true);
     setSettingsError(null);
     try {
-      const fetcher = service === 'apple'
-        ? fetchAppleTracks
-        : service === 'youtube'
-          ? fetchYouTubeTracks
-          : fetchSpotifyTracks;
-      const tracks = await fetcher(id);
+      const tracks = await fetchYouTubeTracks(id);
       if (tracks.length === 0) {
         setSettingsError('Playlist is empty');
         return;
@@ -369,7 +323,7 @@ export default function App() {
   const [needleLifted, setNeedleLifted] = useState(false);
   const [starHovered, setStarHovered] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showQueue, setShowQueue] = useState(false); // QUEUE STATE IS HERE!
+  const [showQueue, setShowQueue] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [hoverProgress, setHoverProgress] = useState(null);
   const seekRef = useRef(null);
@@ -528,31 +482,15 @@ export default function App() {
       <div className="now-playing" style={{ pointerEvents: 'auto', zIndex: 50 }}>
         {isEditingCurrent ? (
           <div className="track-info" style={{ position: 'relative', width: '100%' }}>
-            {/* Input 1: Title (Forced Dark Background) */}
             <input 
               className="settings-input" 
-              style={{ 
-                width: '100%', 
-                marginBottom: '4px', 
-                fontSize: '12px',
-                backgroundColor: 'rgba(10, 10, 10, 0.85)', // Much darker grey/black
-                color: '#ffffff', // Bright white text
-                border: '1px solid #555' // Subtle visible border
-              }} 
+              style={{ width: '100%', marginBottom: '4px', fontSize: '12px', backgroundColor: 'rgba(10, 10, 10, 0.85)', color: '#ffffff', border: '1px solid #555' }} 
               value={editTitle} 
               onChange={(e) => setEditTitle(e.target.value)} 
             />
-            {/* Input 2: Artist (Forced Dark Background) */}
             <input 
               className="settings-input" 
-              style={{ 
-                width: '100%', 
-                marginBottom: '4px', 
-                fontSize: '12px',
-                backgroundColor: 'rgba(10, 10, 10, 0.85)',
-                color: '#ffffff',
-                border: '1px solid #555'
-              }} 
+              style={{ width: '100%', marginBottom: '4px', fontSize: '12px', backgroundColor: 'rgba(10, 10, 10, 0.85)', color: '#ffffff', border: '1px solid #555' }} 
               value={editArtist} 
               onChange={(e) => setEditArtist(e.target.value)} 
             />
@@ -567,11 +505,11 @@ export default function App() {
               <button 
                 className="btn-edit-action btn-edit-save" 
                 onClick={async () => {
-                  const currentFile = localTracks[local.trackIndex]?.file;
-                  if (!currentFile) return;
+                  // FIX: Safely use the locked editingFilename, so it NEVER overwrites the wrong song!
+                  if (!editingFilename) return;
                   
                   const success = await window.cupid?.editLocalSong({
-                    filename: currentFile,
+                    filename: editingFilename,
                     metadata: { title: editTitle, artist: editArtist }
                   });
                   
@@ -590,36 +528,21 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
               <div className="now-playing-label">now playing...</div>
               
-              {/* The 3-dot menu button */}
-{source === 'local' && track.title !== 'No track' && (
-  <button 
-    className="btn-song-menu"
-    onClick={() => setShowSongMenu((v) => !v)}
-  >
-    ⋮
-  </button>
-)}
+              {source === 'local' && track.title !== 'No track' && (
+                <button 
+                  className="btn-song-menu"
+                  onClick={() => setShowSongMenu((v) => !v)}
+                >
+                  ⋮
+                </button>
+              )}
             </div>
             
             <MarqueeText className="track-title" text={track.title} />
             <div className="track-artist">by {track.artist}</div>
 
-            {/* The Dropdown Menu */}
             {showSongMenu && (
-              <div style={{ 
-                position: 'absolute', 
-                right: '-5px', 
-                top: '15px', // Adjusted to pop out right below the pinned dots
-                background: 'rgba(15, 15, 15, 0.95)', // Made menu background darker too
-                border: '1px solid #444', 
-                borderRadius: '4px',
-                padding: '5px', 
-                zIndex: 999, 
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '4px',
-                minWidth: '80px'
-              }}>
+              <div style={{ position: 'absolute', right: '-5px', top: '15px', background: 'rgba(15, 15, 15, 0.95)', border: '1px solid #444', borderRadius: '4px', padding: '5px', zIndex: 999, display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '80px' }}>
                 <button 
                   className="settings-playlist-item" 
                   style={{ textAlign: 'center', width: '100%' }}
@@ -627,6 +550,11 @@ export default function App() {
                     setShowSongMenu(false); 
                     setEditTitle(track.title); 
                     setEditArtist(track.artist);
+                    
+                    // FIX: Lock in the exact filename we are editing!
+                    const currentFile = localTracks[local.trackIndex]?.file;
+                    setEditingFilename(currentFile);
+                    
                     setIsEditingCurrent(true); 
                   }}
                 >
@@ -727,7 +655,6 @@ export default function App() {
       <div className="btn btn-exit" onClick={() => window.cupid?.close()} />
       <div className="btn btn-settings" onClick={() => setShowSettings((v) => !v)} />
 
-      {/* --- STYLED QUEUE BUTTON --- */}
       <button 
         className={`btn-queue ${showQueue ? 'active' : ''}`}
         onClick={() => setShowQueue(v => !v)}
@@ -735,7 +662,6 @@ export default function App() {
         queue
       </button>
 
-      {/* --- QUEUE PANEL --- */}
       {showQueue && (
         <div className="queue-panel">
           <div className="queue-panel-inner">
@@ -768,7 +694,6 @@ export default function App() {
                 </button>
               ))}
               
-              {/* Fallback if queue is totally empty */}
               {((source === 'local' && localTracks.length === 0) || (source === 'streaming' && streamTracks.length === 0)) && (
                 <div className="settings-label" style={{ opacity: 0.5, marginTop: '5px' }}>queue is empty</div>
               )}
@@ -776,18 +701,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      {showDebug && (
-        <>
-          <div className="debug-overlay btn btn-prev" />
-          <div className="debug-overlay btn btn-play" />
-          <div className="debug-overlay btn btn-next" />
-          <div className="debug-overlay volume-hover-zone" />
-          <div className="debug-overlay volume-bar-area-debug" />
-          <div className="debug-overlay btn btn-playmode" />
-        </>
-      )}
-
 
       {showSettings && (
         <div className="settings-panel">
@@ -798,7 +711,7 @@ export default function App() {
                 pink
               </button>
               <button className={`settings-theme-btn ${theme === 'blue' ? 'active' : ''}`} onClick={() => { if (theme !== 'blue') toggleTheme(); }}>
-                blue
+                charcoal
               </button>
             </div>
             <div className="settings-label">music</div>
@@ -806,8 +719,6 @@ export default function App() {
               value={musicService}
               options={[
                 { value: 'local', label: 'local' },
-                { value: 'spotify', label: 'spotify' },
-                { value: 'apple', label: 'apple' },
                 { value: 'youtube', label: 'youtube' },
               ]}
               onChange={(next) => {
@@ -818,145 +729,73 @@ export default function App() {
             />
 
             {musicService === 'local' && (
-  !addingSong ? (
-    <div className="settings-theme-row">
-      <button className="settings-theme-btn" onClick={loadLocalPlaylist}>
-        reload
-      </button>
-      <button className="settings-theme-btn" onClick={() => setAddingSong(true)}>
-        add song +
-      </button>
-    </div>
-  ) : (
-    <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-      <input 
-        className="settings-input" 
-        placeholder="Title (leave blank for filename)" 
-        value={newSongTitle} 
-        onChange={(e) => setNewSongTitle(e.target.value)} 
-      />
-      <input 
-        className="settings-input" 
-        placeholder="Artist" 
-        value={newSongArtist} 
-        onChange={(e) => setNewSongArtist(e.target.value)} 
-      />
-      <input 
-        className="settings-input" 
-        placeholder="Art URL (optional)" 
-        value={newSongArt} 
-        onChange={(e) => setNewSongArt(e.target.value)} 
-      />
-      <div className="settings-theme-row" style={{ marginTop: '5px' }}>
-        <button 
-          className="settings-theme-btn" 
-          onClick={() => {
-            setAddingSong(false);
-            setSettingsError(null);
-          }}
-        >
-          cancel
-        </button>
-        <button 
-          className="settings-theme-btn" 
-          onClick={async () => {
-            setSettingsError(null);
-            
-            // Call the Electron backend
-            const success = await window.cupid?.addLocalSong({ 
-              title: newSongTitle.trim(), 
-              artist: newSongArtist.trim() || "Unknown Artist", 
-              art: newSongArt.trim() 
-            });
-
-            if (success) {
-              // Reload playlist and reset form
-              loadLocalPlaylist();
-              setAddingSong(false);
-              setNewSongTitle('');
-              setNewSongArtist('');
-              setNewSongArt('');
-            } else {
-              setSettingsError("Failed to add song. Did you pick a file?");
-            }
-          }}
-        >
-          pick file & save
-        </button>
-      </div>
-    </div>
-  )
-)}
-            
-
-            {musicService === 'spotify' && (
-              !spotifyConnected ? (
-                <button className="settings-theme-btn" onClick={() => spotifyLogin()}>
-                  log in
-                </button>
+              !addingSong ? (
+                <div className="settings-theme-row">
+                  <button className="settings-theme-btn" onClick={loadLocalPlaylist}>
+                    reload
+                  </button>
+                  <button className="settings-theme-btn" onClick={() => setAddingSong(true)}>
+                    add song +
+                  </button>
+                </div>
               ) : (
-                <>
-                  <PlaylistList
-                    loading={loadingPlaylists}
-                    playlists={spotifyPlaylists}
-                    loadingPlaylist={loadingPlaylist}
-                    onSelect={(id) => loadPlaylist(id, 'spotify')}
+                <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <input 
+                    className="settings-input" 
+                    placeholder="Title (leave blank for filename)" 
+                    value={newSongTitle} 
+                    onChange={(e) => setNewSongTitle(e.target.value)} 
                   />
-                  <div className="settings-theme-row">
-                    <button className={`settings-theme-btn ${loadingPlaylists ? 'disabled' : ''}`} disabled={loadingPlaylists} onClick={() => loadSpotifyPlaylists()}>
-                      refresh
+                  <input 
+                    className="settings-input" 
+                    placeholder="Artist" 
+                    value={newSongArtist} 
+                    onChange={(e) => setNewSongArtist(e.target.value)} 
+                  />
+                  <input 
+                    className="settings-input" 
+                    placeholder="Art URL (optional)" 
+                    value={newSongArt} 
+                    onChange={(e) => setNewSongArt(e.target.value)} 
+                  />
+                  <div className="settings-theme-row" style={{ marginTop: '5px' }}>
+                    <button 
+                      className="settings-theme-btn" 
+                      onClick={() => {
+                        setAddingSong(false);
+                        setSettingsError(null);
+                      }}
+                    >
+                      cancel
                     </button>
-                    <button className="settings-theme-btn" onClick={() => {
-                      spotifyLogout();
-                      setSpotifyConnected(false);
-                      setSpotifyPlaylists([]);
-                      if (source === 'streaming') setSource('local');
-                    }}>
-                      logout
+                    <button 
+                      className="settings-theme-btn" 
+                      onClick={async () => {
+                        setSettingsError(null);
+                        const success = await window.cupid?.addLocalSong({ 
+                          title: newSongTitle.trim(), 
+                          artist: newSongArtist.trim() || "Unknown Artist", 
+                          art: newSongArt.trim() 
+                        });
+
+                        if (success) {
+                          loadLocalPlaylist();
+                          setAddingSong(false);
+                          setNewSongTitle('');
+                          setNewSongArtist('');
+                          setNewSongArt('');
+                        } else {
+                          setSettingsError("Failed to add song. Did you pick a file?");
+                        }
+                      }}
+                    >
+                      pick file & save
                     </button>
                   </div>
-                </>
+                </div>
               )
             )}
-
-            {musicService === 'apple' && (
-              !appleConnected ? (
-                <button className="settings-theme-btn" onClick={async () => {
-                  try {
-                    await appleLogin();
-                    setAppleConnected(true);
-                    loadApplePlaylists();
-                  } catch (err) {
-                    setSettingsError(err.message);
-                  }
-                }}>
-                  log in
-                </button>
-              ) : (
-                <>
-                  <PlaylistList
-                    loading={loadingPlaylists}
-                    playlists={applePlaylists}
-                    loadingPlaylist={loadingPlaylist}
-                    onSelect={(id) => loadPlaylist(id, 'apple')}
-                  />
-                  <div className="settings-theme-row">
-                    <button className={`settings-theme-btn ${loadingPlaylists ? 'disabled' : ''}`} disabled={loadingPlaylists} onClick={() => loadApplePlaylists()}>
-                      refresh
-                    </button>
-                    <button className="settings-theme-btn" onClick={() => {
-                      appleLogout();
-                      setAppleConnected(false);
-                      setApplePlaylists([]);
-                      if (source === 'streaming') setSource('local');
-                    }}>
-                      logout
-                    </button>
-                  </div>
-                </>
-              )
-            )}
-
+            
             {musicService === 'youtube' && (
               isYouTubeConfigured() ? (
                 !youtubeConnected ? (
@@ -1007,7 +846,7 @@ export default function App() {
                   <input
                     className="settings-input"
                     type="text"
-                    placeholder="paste a youtube playlist link"
+                    placeholder="paste a youtube video/playlist link"
                     value={youtubeUrlInput}
                     onChange={(e) => setYoutubeUrlInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -1022,7 +861,7 @@ export default function App() {
                     onClick={() => loadYoutubePlaylistFromUrl(youtubeUrlInput.trim())}
                     disabled={loadingPlaylist || !youtubeUrlInput.trim()}
                   >
-                    {loadingPlaylist ? 'loading...' : 'load playlist'}
+                    {loadingPlaylist ? 'loading...' : 'load link'}
                   </button>
                 </>
               )

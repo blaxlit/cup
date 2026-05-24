@@ -280,9 +280,12 @@ async function fetchYouTubePlaylistViaYtDlp(url) {
     '--dump-single-json',
     '--no-warnings',
   ], { timeout: 30000, maxBuffer: 50 * 1024 * 1024 });
-
+  
   const data = JSON.parse(stdout);
-  const entries = data.entries || [];
+  
+  // FIX: If data.entries exists, it's a playlist. If not, it's a single video!
+  const entries = data.entries || (data.id ? [data] : []);
+  
   return entries
     .filter((e) => e && e.id && YT_ID_RE.test(e.id))
     .map((e) => ({
