@@ -15,15 +15,21 @@
   --color-title: #7E8691;       /* Soft slate */
   --color-primary: #15171A;     /* Deep charcoal background */
   --color-secondary: #30363D;   /* Dark grey borders/accents */
-  --color-panel-text: #E6EDF3;  /* Bright readable text */
+  --color-panel-text: #83878b;  /* Bright readable text */
 }
 
-/* 🌙 ADD THIS BLOCK: Force the blue images to become Charcoal Night */
+/* 🌙 UPDATED: Smarter charcoal filter */
 .player.theme-blue img:not(.album-art) {
-  /* Grayscale drains the blue, brightness darkens it, contrast makes it pop */
-  filter: grayscale(90%) brightness(35%) contrast(140%);
+  /* Increased brightness from 35% to 65% so details show up! */
+  /* Added slight sepia/hue-rotate to give it a "charcoal/grey" vibe instead of just dark blue */
+  filter: grayscale(80%) brightness(35%) contrast(110%) sepia(10%) hue-rotate(190deg);
 }
 
+/* Make time display readable in Charcoal/Blue theme */
+.player.theme-blue .time-display {
+  color: var(--color-panel-text) !important;
+  text-shadow: 0 0 4px rgba(0,0,0,0.5);
+}
 
 .layer {
   position: absolute;
@@ -490,7 +496,8 @@
   image-rendering: pixelated;
   pointer-events: none;
   user-select: none;
-  z-index: 10;
+  z-index: 12; /* Increased slightly to sit above background layers */
+  filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.3)); /* Adds depth */
 }
 
 .frame-overlay {
@@ -812,4 +819,12 @@
 .queue-list .settings-playlist-item.active {
   background: var(--color-panel-text);
   color: var(--color-primary);
+}
+
+/* Ensure text is bright white in Charcoal/Blue theme */
+.theme-blue .track-title,
+.theme-blue .track-artist,
+.theme-blue .now-playing-label {
+  color: var(--color-panel-text) !important;
+  text-shadow: 0 0 4px rgba(0,0,0,0.5); /* Adds a shadow to make it readable over images */
 }
