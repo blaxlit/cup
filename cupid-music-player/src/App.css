@@ -18,6 +18,12 @@
   --color-panel-text: #E6EDF3;  /* Bright readable text */
 }
 
+/* 🌙 ADD THIS BLOCK: Force the blue images to become Charcoal Night */
+.player.theme-blue img:not(.album-art) {
+  /* Grayscale drains the blue, brightness darkens it, contrast makes it pop */
+  filter: grayscale(90%) brightness(35%) contrast(140%);
+}
+
 
 .layer {
   position: absolute;
@@ -236,15 +242,21 @@
   color: var(--color-primary);
 }
 
+/* --- DARK INPUT FIELDS --- */
 .settings-input {
+  background: rgba(10, 10, 10, 0.95) !important; /* Force near-black background */
+  color: #ffffff !important;                   /* Force white text */
+  border: 1px solid #444 !important;           /* Clear border */
+  border-radius: 4px;
+  padding: 8px;
+  width: 100%;
   font-family: 'Rainyhearts', monospace;
-  font-size: calc(10 / 306 * 100vw);
-  background: rgba(0, 0, 0, 0.3);
-  border: calc(1 / 306 * 100vw) solid var(--color-panel-text);
-  border-radius: calc(2 / 306 * 100vw);
-  color: var(--color-panel-text);
-  padding: calc(3 / 306 * 100vw) calc(4 / 306 * 100vw);
-  outline: none;
+  font-size: 14px;
+}
+
+/* Make placeholder text visible in the dark theme */
+.settings-input::placeholder {
+  color: #888;
 }
 
 .settings-playlist-list {
