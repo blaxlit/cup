@@ -2,9 +2,9 @@
  * YouTube playlist helpers.
  *
  * Two flows:
- *  1. By URL — yt-dlp scrapes any public/unlisted playlist. No sign-in, no API key.
- *  2. By Data API — the user is signed in via OAuth; we list their own playlists
- *     and items. Free Data API quota; no YouTube Premium required.
+ * 1. By URL — yt-dlp scrapes any public/unlisted playlist. No sign-in, no API key.
+ * 2. By Data API — the user is signed in via OAuth; we list their own playlists
+ * and items. Free Data API quota; no YouTube Premium required.
  *
  * Both return tracks with `videoId` so the player can skip the YT search step.
  */
@@ -13,15 +13,6 @@ import { getAccessToken } from './auth.js';
 
 const API_BASE = 'https://www.googleapis.com/youtube/v3';
 
-/**
- * Parse a YouTube playlist URL and return its playlist ID.
- *
- * Accepts:
- *   - https://www.youtube.com/playlist?list=PL...
- *   - https://music.youtube.com/playlist?list=PL...
- *   - https://youtu.be/<videoId>?list=PL...
- *   - PL... (bare ID)
- */
 export function parsePlaylistUrl(input) {
   if (!input) return null;
   const trimmed = input.trim();
@@ -34,20 +25,6 @@ export function parsePlaylistUrl(input) {
   // Bare ID fallback (starts with PL, etc.)
   if (/^[A-Za-z0-9_-]{13,}$/.test(trimmed) && /^(PL|LL|FL|RD|UU|UL|OL)/.test(trimmed)) {
     return trimmed;
-  }
-
-  return null;
-}
-
-  try {
-    const url = new URL(trimmed);
-    const host = url.hostname.replace(/^www\./, '');
-    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com' || host === 'youtu.be') {
-      const list = url.searchParams.get('list');
-      if (list) return list;
-    }
-  } catch {
-    // not a URL
   }
 
   return null;

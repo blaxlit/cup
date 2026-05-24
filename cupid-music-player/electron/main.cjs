@@ -9,7 +9,6 @@ const http = require('node:http');
 
 const fs = require('node:fs');
 const jwt = require('jsonwebtoken');
-
 const execFileAsync = promisify(execFile);
 
 // Custom protocol used by the renderer's <audio> — main fetches the actual
@@ -25,29 +24,25 @@ protocol.registerSchemesAsPrivileged([
     privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, bypassCSP: true },
   },
 ]);
-
 // ── Apple Music developer token ──────────────────────────
 let appleMusicToken = null;
 let appleMusicTokenExpiry = 0;
-
 function generateAppleMusicToken() {
   if (appleMusicToken && Date.now() < appleMusicTokenExpiry) {
     return appleMusicToken;
-  }
+}
 
   const teamId = process.env.APPLE_TEAM_ID;
   const keyId = process.env.APPLE_KEY_ID;
 
   if (!teamId || !keyId) return null;
-
-  // Find the .p8 key file in project root
+// Find the .p8 key file in project root
   const projectRoot = path.join(__dirname, '..');
-  const keyFiles = fs.readdirSync(projectRoot).filter((f) => f.endsWith('.p8'));
+const keyFiles = fs.readdirSync(projectRoot).filter((f) => f.endsWith('.p8'));
   if (keyFiles.length === 0) return null;
 
   const privateKey = fs.readFileSync(path.join(projectRoot, keyFiles[0]), 'utf8');
-
-  appleMusicToken = jwt.sign({}, privateKey, {
+appleMusicToken = jwt.sign({}, privateKey, {
     algorithm: 'ES256',
     expiresIn: '180d',
     issuer: teamId,
@@ -56,10 +51,9 @@ function generateAppleMusicToken() {
       kid: keyId,
     },
   });
-
-  // Cache for 179 days
+// Cache for 179 days
   appleMusicTokenExpiry = Date.now() + 179 * 24 * 60 * 60 * 1000;
-  return appleMusicToken;
+return appleMusicToken;
 }
 
 // ── yt-dlp stream URL fetcher ────────────────────────────
@@ -69,18 +63,17 @@ const streamCache = new Map();
 const pendingRequests = new Map();
 const videoIdCache = new Map();
 const CACHE_TTL = 25 * 60 * 1000;
-
 let videoIdCacheLoaded = false;
 let videoIdCacheFile = null;
 let videoIdSaveTimer = null;
 
 function loadVideoIdCache() {
   if (videoIdCacheLoaded) return;
-  videoIdCacheLoaded = true;
+videoIdCacheLoaded = true;
   try {
     videoIdCacheFile = path.join(app.getPath('userData'), 'video-id-cache.json');
     const raw = fs.readFileSync(videoIdCacheFile, 'utf8');
-    for (const [k, v] of Object.entries(JSON.parse(raw))) videoIdCache.set(k, v);
+for (const [k, v] of Object.entries(JSON.parse(raw))) videoIdCache.set(k, v);
   } catch {
     // no cache file yet
   }
@@ -88,7 +81,7 @@ function loadVideoIdCache() {
 
 function persistVideoIdCache() {
   if (!videoIdCacheFile) return;
-  clearTimeout(videoIdSaveTimer);
+clearTimeout(videoIdSaveTimer);
   videoIdSaveTimer = setTimeout(() => {
     const obj = Object.fromEntries(videoIdCache);
     fs.promises.writeFile(videoIdCacheFile, JSON.stringify(obj)).catch(() => {});
@@ -108,7 +101,8 @@ let cachedYtDlpPath = null;
 function getYtDlpPath() {
   if (cachedYtDlpPath) return cachedYtDlpPath;
 
-  const binName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
+  const binName = process.platform === 'win32' ?
+'yt-dlp.exe' : 'yt-dlp';
 
   const candidates = [
     // Dev / cloned-from-source: scripts/install-yt-dlp.cjs drops it here
@@ -116,19 +110,18 @@ function getYtDlpPath() {
     // Packaged app: extraResources places it under resourcesPath/bin/
     path.join(process.resourcesPath || '', 'bin', binName),
   ];
-
-  for (const p of candidates) {
+for (const p of candidates) {
     try {
       if (fs.statSync(p).isFile()) {
         cachedYtDlpPath = p;
-        return p;
+return p;
       }
     } catch {}
   }
 
   // Fall back to whatever `yt-dlp` (or `yt-dlp.exe`) resolves to on $PATH —
   // execFile on Windows needs the explicit extension.
-  cachedYtDlpPath = binName;
+cachedYtDlpPath = binName;
   return cachedYtDlpPath;
 }
 
@@ -140,7 +133,7 @@ const YT_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 let innertubePromise = null;
 function getInnertube() {
   if (innertubePromise) return innertubePromise;
-  innertubePromise = (async () => {
+innertubePromise = (async () => {
     const { Innertube, UniversalCache } = await import('youtubei.js');
     return Innertube.create({
       cache: new UniversalCache(true, path.join(app.getPath('userData'), 'innertube-cache')),
@@ -150,22 +143,22 @@ function getInnertube() {
     innertubePromise = null;
     throw err;
   });
-  return innertubePromise;
+return innertubePromise;
 }
 
 async function searchYouTubeMusic(title, artist) {
   const yt = await getInnertube();
-  const search = await yt.music.search(`${title} ${artist}`, { type: 'song' });
+const search = await yt.music.search(`${title} ${artist}`, { type: 'song' });
 
   let top = search.songs?.contents?.find((c) => c?.id);
-  if (!top) {
+if (!top) {
     for (const shelf of search.contents || []) {
       const item = shelf?.contents?.find?.((c) => c?.id);
-      if (item) { top = item; break; }
+if (item) { top = item; break; }
     }
   }
   if (!top?.id) throw new Error('No song result');
-  return top.id;
+return top.id;
 }
 
 async function ytDlpExtract(target) {
@@ -176,7 +169,7 @@ async function ytDlpExtract(target) {
     '--no-warnings',
     '-g',
   ], { timeout: 15000 });
-  return stdout.trim();
+return stdout.trim();
 }
 
 async function ytDlpSearch(title, artist) {
@@ -188,10 +181,10 @@ async function ytDlpSearch(title, artist) {
     '--print', '%(id)s',
     '-g',
   ], { timeout: 15000 });
-  const lines = stdout.trim().split('\n').map((l) => l.trim()).filter(Boolean);
+const lines = stdout.trim().split('\n').map((l) => l.trim()).filter(Boolean);
   const id = lines.find((l) => YT_ID_RE.test(l));
   const url = lines.find((l) => l.startsWith('http'));
-  if (!id || !url) throw new Error('yt-dlp search returned no usable result');
+if (!id || !url) throw new Error('yt-dlp search returned no usable result');
   return { id, url };
 }
 
@@ -201,12 +194,11 @@ const pendingDecipher = new Map();
 
 async function resolveStreamUrl(videoId) {
   const cached = decipheredCache.get(videoId);
-  if (cached && Date.now() - cached.time < CACHE_TTL) return cached.url;
+if (cached && Date.now() - cached.time < CACHE_TTL) return cached.url;
 
   const inflight = pendingDecipher.get(videoId);
   if (inflight) return inflight;
-
-  const promise = (async () => {
+const promise = (async () => {
     try {
       const url = await ytDlpExtract(`https://www.youtube.com/watch?v=${videoId}`);
       decipheredCache.set(videoId, { url, time: Date.now() });
@@ -215,21 +207,20 @@ async function resolveStreamUrl(videoId) {
       pendingDecipher.delete(videoId);
     }
   })();
-
-  pendingDecipher.set(videoId, promise);
+pendingDecipher.set(videoId, promise);
   return promise;
 }
 
 async function getStreamUrl(title, artist) {
   const cacheKey = `${title}::${artist}`;
   const cached = streamCache.get(cacheKey);
-  if (cached && Date.now() - cached.time < CACHE_TTL) return cached.url;
+if (cached && Date.now() - cached.time < CACHE_TTL) return cached.url;
 
   const inflight = pendingRequests.get(cacheKey);
   if (inflight) return inflight;
 
   loadVideoIdCache();
-  let videoId = videoIdCache.get(cacheKey);
+let videoId = videoIdCache.get(cacheKey);
 
   const promise = (async () => {
     try {
@@ -240,6 +231,7 @@ async function getStreamUrl(title, artist) {
           console.warn('[youtubei search] fallback to yt-dlp:', err.message);
           const result = await ytDlpSearch(title, artist);
           videoId = result.id;
+ 
           // We already have a usable URL from yt-dlp — seed the decipher cache
           decipheredCache.set(videoId, { url: result.url, time: Date.now() });
         }
@@ -250,24 +242,25 @@ async function getStreamUrl(title, artist) {
       // Best-effort pre-warm so the renderer's protocol fetch hits the decipher cache
       resolveStreamUrl(videoId).catch(() => {});
 
-      const url = `cupid-audio://stream?id=${encodeURIComponent(videoId)}`;
+      
+const url = `cupid-audio://stream?id=${encodeURIComponent(videoId)}`;
       streamCache.set(cacheKey, { url, time: Date.now() });
       return url;
     } finally {
       pendingRequests.delete(cacheKey);
     }
   })();
-
-  pendingRequests.set(cacheKey, promise);
+pendingRequests.set(cacheKey, promise);
   return promise;
 }
 
 // Direct cupid-audio URL for a known YouTube video ID — skips the search step
-// used by Spotify/Apple. Best-effort pre-warms the decipher cache.
+// used by Spotify/Apple.
+// Best-effort pre-warms the decipher cache.
 function streamUrlForVideoId(videoId) {
   if (!YT_ID_RE.test(videoId)) throw new Error('Invalid YouTube video ID');
   resolveStreamUrl(videoId).catch(() => {});
-  return `cupid-audio://stream?id=${encodeURIComponent(videoId)}`;
+return `cupid-audio://stream?id=${encodeURIComponent(videoId)}`;
 }
 
 // Fetch a public/unlisted YouTube playlist via yt-dlp --flat-playlist.
@@ -280,13 +273,11 @@ async function fetchYouTubePlaylistViaYtDlp(url) {
     '--dump-single-json',
     '--no-warnings',
   ], { timeout: 30000, maxBuffer: 50 * 1024 * 1024 });
-  
-  const data = JSON.parse(stdout);
+const data = JSON.parse(stdout);
   
   // FIX: If data.entries exists, it's a playlist. If not, it's a single video!
-  const entries = data.entries || (data.id ? [data] : []);
-  
-  return entries
+const entries = data.entries || (data.id ? [data] : []);
+return entries
     .filter((e) => e && e.id && YT_ID_RE.test(e.id))
     .map((e) => ({
       videoId: e.id,
@@ -309,7 +300,8 @@ function bundledAudioDir() {
 
 function userAudioDir() {
   return isDev
-    ? path.join(__dirname, '..', 'audio')
+    ?
+path.join(__dirname, '..', 'audio')
     : path.join(app.getPath('userData'), 'audio');
 }
 
@@ -323,24 +315,24 @@ async function seedUserAudioDirIfMissing() {
   try {
     await fs.promises.access(dest);
     return;
-  } catch {
+} catch {
     // doesn't exist yet — seed it
   }
 
   const src = bundledAudioDir();
-  await fs.promises.mkdir(dest, { recursive: true });
+await fs.promises.mkdir(dest, { recursive: true });
 
   try {
     const entries = await fs.promises.readdir(src);
-    await Promise.all(entries.map(async (name) => {
+await Promise.all(entries.map(async (name) => {
       const from = path.join(src, name);
       const to = path.join(dest, name);
       const stat = await fs.promises.stat(from);
       if (stat.isFile()) await fs.promises.copyFile(from, to);
     }));
-  } catch (err) {
+} catch (err) {
     console.warn('[seed audio]', err.message);
-  }
+}
 }
 
 // Scale factor for pixel art
@@ -365,72 +357,69 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-
-  // Lock aspect ratio so only proportional resizing is allowed
+// Lock aspect ratio so only proportional resizing is allowed
   const ASPECT = WIDTH / HEIGHT;
   win.setAspectRatio(ASPECT);
-
-  // Window control handlers
+// Window control handlers
   let preMaxBounds = null;
 
   const onMinimize = () => win.minimize();
-  const onMaximize = () => {
+const onMaximize = () => {
     if (preMaxBounds) {
       // Restore to previous size
       win.setBounds(preMaxBounds);
-      preMaxBounds = null;
+preMaxBounds = null;
     } else {
       // Fit to screen while maintaining aspect ratio
       preMaxBounds = win.getBounds();
-      const { workArea } = screen.getPrimaryDisplay();
+const { workArea } = screen.getPrimaryDisplay();
       let newWidth = workArea.width;
       let newHeight = Math.round(newWidth / ASPECT);
-      if (newHeight > workArea.height) {
+if (newHeight > workArea.height) {
         newHeight = workArea.height;
         newWidth = Math.round(newHeight * ASPECT);
-      }
+}
       const x = workArea.x + Math.round((workArea.width - newWidth) / 2);
-      const y = workArea.y + Math.round((workArea.height - newHeight) / 2);
+const y = workArea.y + Math.round((workArea.height - newHeight) / 2);
       win.setBounds({ x, y, width: newWidth, height: newHeight });
-    }
+}
   };
   const onClose = () => win.close();
 
   const onResize = (_e, { dx, dy, corner }) => {
     if (win.isDestroyed()) return;
-    const bounds = win.getBounds();
+const bounds = win.getBounds();
 
     const isRight = corner.includes('right');
     const isBottom = corner.includes('bottom');
 
     const effectiveDx = isRight ? dx : -dx;
-    const effectiveDy = isBottom ? dy : -dy;
+const effectiveDy = isBottom ? dy : -dy;
 
     let delta;
-    if (Math.abs(effectiveDx) > Math.abs(effectiveDy)) {
+if (Math.abs(effectiveDx) > Math.abs(effectiveDy)) {
       delta = effectiveDx;
-    } else {
+} else {
       delta = effectiveDy;
     }
 
     const dw = Math.round(delta);
-    const newWidth = bounds.width + dw;
+const newWidth = bounds.width + dw;
     const newHeight = Math.round(newWidth / ASPECT);
     const dh = newHeight - bounds.height;
-
-    const newBounds = {
-      x: isRight ? bounds.x : bounds.x - dw,
-      y: isBottom ? bounds.y : bounds.y - dh,
+const newBounds = {
+      x: isRight ?
+bounds.x : bounds.x - dw,
+      y: isBottom ?
+bounds.y : bounds.y - dh,
       width: newWidth,
       height: newHeight,
     };
-
-    if (newBounds.width >= 200 && newBounds.height >= 200) {
+if (newBounds.width >= 200 && newBounds.height >= 200) {
       win.setBounds(newBounds);
     }
   };
-
-  const onOpenExternal = (_e, url) => {
+const onOpenExternal = (_e, url) => {
     if (typeof url === 'string' && url.startsWith('https://')) {
       if (url.includes('accounts.spotify.com/authorize')) {
         const authWin = new BrowserWindow({
@@ -439,49 +428,47 @@ function createWindow() {
           parent: win,
           modal: true,
           show: true,
-          webPreferences: { nodeIntegration: false, contextIsolation: true },
+        
+  webPreferences: { nodeIntegration: false, contextIsolation: true },
         });
         authWin.loadURL(url);
-        const handleAuthRedirect = (event, callbackUrl) => {
+const handleAuthRedirect = (event, callbackUrl) => {
           if (callbackUrl.startsWith('http://127.0.0.1:5173/callback')) {
             event.preventDefault();
-            const url = new URL(callbackUrl);
+const url = new URL(callbackUrl);
             let target;
             if (isDev) {
               target = `http://127.0.0.1:5173/${url.search}`;
-            } else {
+} else {
               const fileUrl = pathToFileURL(path.join(__dirname, '..', 'dist', 'index.html'));
-              fileUrl.search = url.search;
+fileUrl.search = url.search;
               target = fileUrl.href;
             }
             win.loadURL(target);
             authWin.close();
-          }
+}
         };
         authWin.webContents.on('will-redirect', handleAuthRedirect);
         authWin.webContents.on('will-navigate', handleAuthRedirect);
         return;
-      }
+}
       shell.openExternal(url);
     }
   };
-
-  const onSetTheme = (_e, theme) => {
+const onSetTheme = (_e, theme) => {
     const iconPath = path.join(__dirname, '..', 'assets', theme, 'favicon.png');
-    if (process.platform === 'darwin' && app.dock) {
+if (process.platform === 'darwin' && app.dock) {
       app.dock.setIcon(iconPath);
     }
     win.setIcon(iconPath);
   };
-
-  ipcMain.on('window-minimize', onMinimize);
+ipcMain.on('window-minimize', onMinimize);
   ipcMain.on('window-maximize', onMaximize);
   ipcMain.on('window-close', onClose);
   ipcMain.on('window-resize', onResize);
   ipcMain.on('open-external', onOpenExternal);
   ipcMain.on('set-theme', onSetTheme);
-
-  // Clean up IPC listeners when window is destroyed
+// Clean up IPC listeners when window is destroyed
   win.on('closed', () => {
     ipcMain.removeListener('window-minimize', onMinimize);
     ipcMain.removeListener('window-maximize', onMaximize);
@@ -490,8 +477,7 @@ function createWindow() {
     ipcMain.removeListener('open-external', onOpenExternal);
     ipcMain.removeListener('set-theme', onSetTheme);
   });
-
-  // Handle Spotify OAuth callback in production.
+// Handle Spotify OAuth callback in production.
   win.webContents.on('will-navigate', (event, url) => {
     try {
       const parsed = new URL(url);
@@ -503,7 +489,8 @@ function createWindow() {
       if (parsed.pathname === '/callback' && parsed.searchParams.has('code')) {
         if (!isDev) {
           event.preventDefault();
-          const fileUrl = pathToFileURL(path.join(__dirname, '..', 'dist', 'index.html'));
+  
+         const fileUrl = pathToFileURL(path.join(__dirname, '..', 'dist', 'index.html'));
           fileUrl.search = parsed.search;
           win.loadURL(fileUrl.href);
         }
@@ -512,8 +499,7 @@ function createWindow() {
       // ignore invalid URLs
     }
   });
-
-  // Toggle DevTools with Cmd+Shift+I / Ctrl+Shift+I / F12
+// Toggle DevTools with Cmd+Shift+I / Ctrl+Shift+I / F12
   win.webContents.on('before-input-event', (_e, input) => {
     if (input.type !== 'keyDown') return;
     const isDevToolsShortcut = input.key.toLowerCase() === 'i' && input.shift && (input.meta || input.control);
@@ -521,19 +507,17 @@ function createWindow() {
       win.webContents.toggleDevTools({ mode: 'detach' });
     }
   });
-
-  if (isDev) {
+if (isDev) {
     win.loadURL('http://127.0.0.1:5173');
   } else {
     win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
-  }
+}
 }
 
 // ── Global IPC handlers (persist across window reloads) ──
 ipcMain.handle('get-apple-music-token', () => {
   return generateAppleMusicToken();
 });
-
 ipcMain.handle('get-stream-url', async (_e, title, artist) => {
   try {
     return await getStreamUrl(title, artist);
@@ -541,7 +525,6 @@ ipcMain.handle('get-stream-url', async (_e, title, artist) => {
     throw new Error(`Failed to get stream: ${err.message}`);
   }
 });
-
 ipcMain.handle('get-local-playlist', async () => {
   try {
     const raw = await fs.promises.readFile(userPlaylistFile(), 'utf8');
@@ -552,7 +535,6 @@ ipcMain.handle('get-local-playlist', async () => {
     return [];
   }
 });
-
 ipcMain.handle('get-local-audio-path', (_e, filename) => {
   if (typeof filename !== 'string' || !filename) return null;
   // Reject path traversal and absolute paths — filename must be a basename
@@ -563,14 +545,12 @@ ipcMain.handle('get-local-audio-path', (_e, filename) => {
   // <audio> won't load file:// URLs cross-origin.
   return `cupid-local://audio/${encodeURIComponent(filename)}`;
 });
-
 ipcMain.handle('open-music-folder', async () => {
   const dir = userAudioDir();
   await fs.promises.mkdir(dir, { recursive: true });
   await shell.openPath(dir);
   return dir;
 });
-
 ipcMain.handle('add-local-song', async (_e, metadata) => {
   try {
     // 1. Open File Picker for the audio file
@@ -584,7 +564,8 @@ ipcMain.handle('add-local-song', async (_e, metadata) => {
 
     const sourcePath = filePaths[0];
     const fileName = path.basename(sourcePath);
-    const destPath = path.join(userAudioDir(), fileName);
+    const destPath = path.join(userAudioDir(), 
+fileName);
 
     // 2. Copy the file into the AppData audio folder
     await fs.promises.copyFile(sourcePath, destPath);
@@ -599,25 +580,27 @@ ipcMain.handle('add-local-song', async (_e, metadata) => {
       // If it fails or doesn't exist, we just start with an empty array
     }
 
-    // 4. Append the new song with the provided details
+    
+// 4. Append the new song with the provided details
     playlist.push({
       file: fileName,
-      title: metadata.title || fileName.split('.')[0], // fallback to filename
-      artist: metadata.artist || "Unknown Artist",
+      title: metadata.title ||
+fileName.split('.')[0], // fallback to filename
+      artist: metadata.artist ||
+"Unknown Artist",
       album: metadata.album || "",
-      art: metadata.art || ""
+      art: metadata.art ||
+""
     });
 
     // 5. Write back to playlist.json
     await fs.promises.writeFile(playlistPath, JSON.stringify(playlist, null, 2));
-    
-    return true; // Success!
+return true; // Success!
   } catch (err) {
     console.error('[add-local-song error]', err.message);
     return false;
   }
 });
-
 ipcMain.handle('edit-local-song', async (_e, { filename, metadata }) => {
   try {
     const playlistPath = userPlaylistFile();
@@ -630,14 +613,14 @@ ipcMain.handle('edit-local-song', async (_e, { filename, metadata }) => {
       playlist[songIndex] = { ...playlist[songIndex], ...metadata };
       await fs.promises.writeFile(playlistPath, JSON.stringify(playlist, null, 2));
       return true;
-    }
+ 
+   }
     return false;
   } catch (err) {
     console.error('[edit error]', err.message);
     return false;
   }
 });
-
 ipcMain.handle('delete-local-song', async (_e, filename) => {
   try {
     const playlistPath = userPlaylistFile();
@@ -650,7 +633,8 @@ ipcMain.handle('delete-local-song', async (_e, filename) => {
     
     // Attempt to delete the physical audio file
     // (We wrap this in a try/catch because if the song is currently playing, 
-    // the OS might lock the file. If it fails, it just stays hidden in the folder).
+    // 
+// the OS might lock the file. If it fails, it just stays hidden in the folder).
     try {
       await fs.promises.unlink(path.join(userAudioDir(), filename));
     } catch (e) {
@@ -663,7 +647,6 @@ ipcMain.handle('delete-local-song', async (_e, filename) => {
     return false;
   }
 });
-
 ipcMain.handle('get-stream-url-by-id', (_e, videoId) => {
   return streamUrlForVideoId(videoId);
 });
@@ -675,14 +658,13 @@ ipcMain.handle('youtube-fetch-playlist', async (_e, url) => {
     throw new Error(`yt-dlp playlist fetch failed: ${err.message}`);
   }
 });
-
 // ── Google OAuth loopback ─────────────────────────────────
 // Google's auth servers refuse to render inside Electron's BrowserWindow
 // (embedded-webview policy), so we open the system browser and run a tiny
-// local HTTP server to capture the redirect. Returns the auth code synchronously
+// local HTTP server to capture the redirect.
+// Returns the auth code synchronously
 // after the user completes the flow in their browser.
 let activeOauthServer = null;
-
 ipcMain.handle('youtube-oauth-start', async (_e, { clientId, scope, state, codeChallenge }) => {
   // Tear down any previous attempt
   if (activeOauthServer) {
@@ -696,7 +678,8 @@ ipcMain.handle('youtube-oauth-start', async (_e, { clientId, scope, state, codeC
 
     const srv = http.createServer((req, res) => {
       const u = new URL(req.url, 'http://127.0.0.1');
-      if (u.pathname !== '/youtube-callback') {
+   
+   if (u.pathname !== '/youtube-callback') {
         res.writeHead(404); res.end('not found');
         return;
       }
@@ -706,28 +689,29 @@ ipcMain.handle('youtube-oauth-start', async (_e, { clientId, scope, state, codeC
 
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       if (error) {
-        res.end(`<!doctype html><meta charset=utf-8><title>cupid player</title><style>body{font-family:system-ui;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style><div>Auth failed: ${error}. You can close this window.</div>`);
+        res.end(`<!doctype html><meta charset=utf-8><title>cupid player</title><style>body{font-family:system-ui;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style><div>Auth failed: ${error}.
+You can close this window.</div>`);
         rejectCode(new Error(error));
       } else if (!code) {
         res.end('<!doctype html><meta charset=utf-8><div>Missing code. You can close this window.</div>');
-        rejectCode(new Error('No code in callback'));
+rejectCode(new Error('No code in callback'));
       } else if (returnedState !== state) {
         res.end('<!doctype html><meta charset=utf-8><div>State mismatch. You can close this window.</div>');
-        rejectCode(new Error('OAuth state mismatch'));
+rejectCode(new Error('OAuth state mismatch'));
       } else {
         res.end('<!doctype html><meta charset=utf-8><title>cupid player</title><style>body{font-family:system-ui;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style><div>✓ Signed in — you can close this window and return to Cupid Player.</div>');
-        resolveCode(code);
+resolveCode(code);
       }
 
       // Close the server shortly after handling — single-shot
       setTimeout(() => { try { srv.close(); } catch {} }, 500);
-    });
+});
 
     srv.on('error', reject);
     srv.listen(0, '127.0.0.1', () => {
       resolve({ port: srv.address().port, server: srv, codePromise });
     });
-  });
+});
 
   activeOauthServer = server;
 
@@ -743,35 +727,31 @@ ipcMain.handle('youtube-oauth-start', async (_e, { clientId, scope, state, codeC
     access_type: 'offline',
     prompt: 'consent',
   });
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 
   // Open in the user's default browser — Google refuses embedded webviews
   shell.openExternal(authUrl);
-
-  // Auto-timeout after 5 minutes so we don't leak the server forever
+// Auto-timeout after 5 minutes so we don't leak the server forever
   const timeout = setTimeout(() => {
     try { server.close(); } catch {}
   }, 5 * 60 * 1000);
-
-  try {
+try {
     const code = await codePromise;
     clearTimeout(timeout);
     activeOauthServer = null;
     return { code, redirectUri };
-  } catch (err) {
+} catch (err) {
     clearTimeout(timeout);
     activeOauthServer = null;
     throw err;
   }
 });
-
 ipcMain.handle('youtube-oauth-cancel', () => {
   if (activeOauthServer) {
     try { activeOauthServer.close(); } catch {}
     activeOauthServer = null;
   }
 });
-
 app.whenReady().then(() => {
   if (process.platform === 'darwin' && app.dock) {
     app.dock.setIcon(path.join(__dirname, '..', 'assets', 'pink', 'favicon.png'));
@@ -786,7 +766,8 @@ app.whenReady().then(() => {
       if (!filename || filename.includes('..') || filename.includes('\\') || filename.includes('/')) {
         return new Response('forbidden', { status: 403 });
       }
-      const filePath = path.join(userAudioDir(), filename);
+      const filePath = path.join(userAudioDir(), 
+filename);
       const stat = await fs.promises.stat(filePath);
       const total = stat.size;
       const range = request.headers.get('Range');
@@ -798,17 +779,19 @@ app.whenReady().then(() => {
         '.aac': 'audio/aac',
         '.flac': 'audio/flac',
         '.wav': 'audio/wav',
-        '.ogg': 'audio/ogg',
+        '.ogg': 
+'audio/ogg',
         '.opus': 'audio/ogg',
       };
-      const contentType = mimeByExt[ext] || 'application/octet-stream';
+const contentType = mimeByExt[ext] || 'application/octet-stream';
 
       if (range) {
         const match = /bytes=(\d+)-(\d*)/.exec(range);
-        const start = match ? parseInt(match[1], 10) : 0;
-        const end = match && match[2] ? parseInt(match[2], 10) : total - 1;
+const start = match ? parseInt(match[1], 10) : 0;
+        const end = match && match[2] ?
+parseInt(match[2], 10) : total - 1;
         const nodeStream = fs.createReadStream(filePath, { start, end });
-        return new Response(Readable.toWeb(nodeStream), {
+return new Response(Readable.toWeb(nodeStream), {
           status: 206,
           headers: {
             'Content-Range': `bytes ${start}-${end}/${total}`,
@@ -816,7 +799,8 @@ app.whenReady().then(() => {
             'Content-Length': String(end - start + 1),
             'Content-Type': contentType,
           },
-        });
+        
+});
       }
 
       return new Response(Readable.toWeb(fs.createReadStream(filePath)), {
@@ -827,10 +811,10 @@ app.whenReady().then(() => {
           'Content-Type': contentType,
         },
       });
-    } catch (err) {
+} catch (err) {
       console.error('[cupid-local]', err.message);
       return new Response('not found', { status: 404 });
-    }
+}
   });
 
   protocol.handle('cupid-audio', async (request) => {
@@ -846,7 +830,8 @@ app.whenReady().then(() => {
         'User-Agent': 'Mozilla/5.0',
       };
       const range = request.headers.get('Range');
-      if (range) headers.Range = range;
+  
+    if (range) headers.Range = range;
 
       const upstream = await net.fetch(streamUrl, { headers });
       const respHeaders = new Headers(upstream.headers);
@@ -858,21 +843,19 @@ app.whenReady().then(() => {
       });
     } catch (err) {
       console.error('[cupid-audio]', err.message);
-      return new Response('failed', { status: 502 });
+      
+return new Response('failed', { status: 502 });
     }
   });
 
   createWindow();
-
-  // Pre-warm both engines so the first track load skips cold-start
+// Pre-warm both engines so the first track load skips cold-start
   getInnertube().catch(() => {});
   execFile(getYtDlpPath(), ['--version'], () => {});
-
-  app.on('activate', () => {
+app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
-
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
