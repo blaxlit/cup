@@ -751,7 +751,6 @@
 }
 
 /* --- QUEUE SYSTEM --- */
-/* --- QUEUE SYSTEM --- */
 .btn-queue {
   position: absolute;
   left: calc((129 - 110) / 306 * 100vw);
@@ -828,3 +827,28 @@
   color: var(--color-panel-text) !important;
   text-shadow: 0 0 4px rgba(0,0,0,0.5); /* Adds a shadow to make it readable over images */
 }
+
+/* --- MINI PLAYER MODE --- */
+.player.mini-mode .layer:not(.album-frame-layer),
+.player.mini-mode .window-title,
+.player.mini-mode .track-info,
+.player.mini-mode .time-display,
+.player.mini-mode .btn,
+.player.mini-mode .queue-panel,
+.player.mini-mode .settings-panel,
+.player.mini-mode .progress-seek,
+.player.mini-mode .volume-hover-zone {
+  display: none !important; /* Hide everything except the record! */
+}
+
+/* Re-center the record player in the tiny square */
+.player.mini-mode .record-player {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) scale(1.2) !important;
+}
+
+/* Ensure the app is draggable from anywhere in mini mode */
+.player.mini-mode {
+  -webkit-app-region: drag; 
+} 

@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { app, BrowserWindow, ipcMain, screen, shell, protocol, net, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, shell, protocol, net, dialog, globalShortcut } = require('electron');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const path = require('node:path');
@@ -462,6 +462,20 @@ if (process.platform === 'darwin' && app.dock) {
     }
     win.setIcon(iconPath);
   };
+// --- ADD GLOBAL MEDIA KEYS ---
+  win.on('focus', () => {
+    // Optional: You can register keys globally or just when focused. 
+    // We register them globally so they work while playing games/coding.
+  });
+
+  globalShortcut.register('MediaPlayPause', () => win.webContents.send('media-action', 'play-pause'));
+  globalShortcut.register('MediaNextTrack', () => win.webContents.send('media-action', 'next'));
+  globalShortcut.register('MediaPreviousTrack', () => win.webContents.send('media-action', 'prev'));
+
+  // Clean up shortcuts when the app closes so we don't hold the keys hostage
+  app.on('will-quit', () => {
+    globalShortcut.unregisterAll();
+  });
 ipcMain.on('window-minimize', onMinimize);
   ipcMain.on('window-maximize', onMaximize);
   ipcMain.on('window-close', onClose);
@@ -880,4 +894,19 @@ app.on('activate', () => {
 });
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+// --- MINI PLAYER HANDLER ---
+ipcMain.on('toggle-mini-player', (event, isMini) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win) return;
+
+  if (isMini) {
+    win.setMinimumSize(150, 150);
+    win.setSize(150, 150, true); // Shrink to square
+    win.setAlwaysOnTop(true, 'floating'); // Force on top of other windows
+  } else {
+    win.setMinimumSize(WIDTH, HEIGHT);
+    win.setSize(WIDTH, HEIGHT, true); // Restore normal size
+    win.setAlwaysOnTop(false);
+  }
 });

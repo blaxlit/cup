@@ -193,6 +193,7 @@ export default function App() {
   const [newSongArtist, setNewSongArtist] = useState('');
   const [newSongArt, setNewSongArt] = useState('');
   const [showSongMenu, setShowSongMenu] = useState(false);
+  const [isMiniMode, setIsMiniMode] = useState(false);
   
   // EDIT FIX: Save the explicit filename we are editing so it NEVER overwrites the wrong song
   const [editingFilename, setEditingFilename] = useState(null); 
@@ -411,6 +412,17 @@ export default function App() {
 
   }, [track.title, needleLifted]);
 
+  // Listen for physical keyboard media keys
+  useEffect(() => {
+    if (!window.cupid?.onMediaAction) return;
+    
+    window.cupid.onMediaAction((action) => {
+      if (action === 'play-pause') togglePlay();
+      if (action === 'next') next();
+      if (action === 'prev') prev();
+    });
+  }, [togglePlay, next, prev]);
+
   const resizeTL = useResize('top-left');
   const resizeTR = useResize('top-right');
   const resizeBL = useResize('bottom-left');
@@ -540,7 +552,7 @@ export default function App() {
             
             <MarqueeText className="track-title" text={track.title} />
             <div className="track-artist">by {track.artist}</div>
-
+        
             {showSongMenu && (
               <div style={{ position: 'absolute', right: '-5px', top: '15px', background: 'rgba(15, 15, 15, 0.95)', border: '1px solid #444', borderRadius: '4px', padding: '5px', zIndex: 999, display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '80px' }}>
                 <button 
@@ -701,7 +713,22 @@ export default function App() {
           </div>
         </div>
       )}
+      return (
+    <div className={`player ${theme === 'blue' ? 'theme-blue' : ''} ${isMiniMode ? 'mini-mode' : ''}`}>
+      {/* ... your existing JSX ... */}
 
+      {/* Add this button near your settings/minimize buttons */}
+      <button 
+        className="btn-queue"
+        style={{ left: '10px', right: 'auto', bottom: '10px' }} // Put it bottom left
+        onClick={() => {
+          const nextState = !isMiniMode;
+          setIsMiniMode(nextState);
+          window.cupid?.toggleMiniPlayer(nextState);
+        }}
+      >
+        {isMiniMode ? 'maximize' : 'mini'}
+      </button>
       {showSettings && (
         <div className="settings-panel">
           <div className="settings-panel-inner">

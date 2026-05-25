@@ -21,4 +21,8 @@ contextBridge.exposeInMainWorld('cupid', {
   youtubeOauthStart: (opts) => ipcRenderer.invoke('youtube-oauth-start', opts),
   youtubeOauthCancel: () => ipcRenderer.invoke('youtube-oauth-cancel'),
   fetchSongMetadata: (term) => ipcRenderer.invoke('fetch-song-metadata', term),
+  onMediaAction: (callback) => {
+    ipcRenderer.on('media-action', (_e, action) => callback(action));
+  },
+  toggleMiniPlayer: (isMini) => ipcRenderer.send('toggle-mini-player', isMini),
 });
