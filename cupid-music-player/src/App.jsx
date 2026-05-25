@@ -429,7 +429,7 @@ export default function App() {
   const resizeBR = useResize('bottom-right');
 
   return (
-    <div className={`player ${theme === 'blue' ? 'theme-blue' : ''}`}>
+    <div className={`player ${theme === 'blue' ? 'theme-blue' : ''} ${isMiniMode ? 'mini-mode' : ''}`}>
       <img src={assets.frame} className="layer" alt="" draggable={false} />
       <div className="window-title">cupid player</div>
 
@@ -673,6 +673,30 @@ export default function App() {
       >
         queue
       </button>
+      
+      <div className="btn btn-exit" onClick={() => window.cupid?.close()} />
+      <div className="btn btn-settings" onClick={() => setShowSettings((v) => !v)} />
+
+      <button 
+        className={`btn-queue ${showQueue ? 'active' : ''}`}
+        onClick={() => setShowQueue(v => !v)}
+      >
+        queue
+      </button>
+
+      {/* --- INSERT THE MINI BUTTON HERE --- */}
+      <button 
+        className="btn-queue"
+        style={{ left: '10px', right: 'auto', bottom: '10px', top: 'auto', zIndex: 310 }} 
+        onClick={() => {
+          const nextState = !isMiniMode;
+          setIsMiniMode(nextState);
+          window.cupid?.toggleMiniPlayer(nextState);
+        }}
+      >
+        {isMiniMode ? 'maximize' : 'mini'}
+      </button>
+      {/* ----------------------------------- */}
 
       {showQueue && (
         <div className="queue-panel">
@@ -713,22 +737,7 @@ export default function App() {
           </div>
         </div>
       )}
-      return (
-    <div className={`player ${theme === 'blue' ? 'theme-blue' : ''} ${isMiniMode ? 'mini-mode' : ''}`}>
-      {/* ... your existing JSX ... */}
-
-      {/* Add this button near your settings/minimize buttons */}
-      <button 
-        className="btn-queue"
-        style={{ left: '10px', right: 'auto', bottom: '10px' }} // Put it bottom left
-        onClick={() => {
-          const nextState = !isMiniMode;
-          setIsMiniMode(nextState);
-          window.cupid?.toggleMiniPlayer(nextState);
-        }}
-      >
-        {isMiniMode ? 'maximize' : 'mini'}
-      </button>
+      
       {showSettings && (
         <div className="settings-panel">
           <div className="settings-panel-inner">
