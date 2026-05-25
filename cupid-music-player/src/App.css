@@ -838,25 +838,22 @@
 .player.mini-mode .settings-panel,
 .player.mini-mode .progress-seek,
 .player.mini-mode .volume-hover-zone,
-.player.mini-mode .btn-queue /* Hides the queue button in mini mode! */
+.player.mini-mode .btn-queue 
 {
+  /* The button you need to click is NOT in this list anymore! */
   display: none !important; 
 }
 
-/* Re-center the record player in the tiny square */
-.player.mini-mode .record-player {
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) scale(1.2) !important;
+/* Keep the mini button visible and clickable */
+.player.mini-mode .btn-mini-toggle {
+  display: block !important;
+  opacity: 1 !important;
+  z-index: 9999 !important;
 }
 
-.player.mini-mode {
-  -webkit-app-region: drag; 
-}
-
-/* --- MINI TOGGLE BUTTON --- */
 .btn-mini-toggle {
   position: absolute;
+<<<<<<< HEAD
   top: calc(332 / 306 * 100vw);
   right: calc(52 / 306 * 100vw); /* Places it just left of the settings gear */
   background: var(--color-primary);
@@ -887,4 +884,10 @@
 
 .player.mini-mode:hover .btn-mini-toggle {
   opacity: 1; /* Shows up when you mouse over the window */
+=======
+  top: calc(275 / 306 * 100vw); /* Adjust this to match your settings icon row */
+  right: calc(65 / 306 * 100vw);
+  z-index: 1000;
+  pointer-events: auto !important; /* Forces the click to register */
+>>>>>>> 408e4ebc8c6825a4c1ce1a16e9e3e54dc1b41aaf
 }
