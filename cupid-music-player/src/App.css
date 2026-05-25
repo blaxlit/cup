@@ -857,18 +857,21 @@
 /* --- MINI TOGGLE BUTTON --- */
 .btn-mini-toggle {
   position: absolute;
-  top: calc(9 / 306 * 100vw);
-  right: calc(30 / 306 * 100vw); /* Places it just left of the settings gear */
+  top: calc(31 / 306 * 100vw);
+  right: calc(155 / 306 * 100vw); /* Adjusted to sit safely left of Settings */
+  
   background: var(--color-primary);
   border: 1px solid var(--color-secondary);
   color: var(--color-panel-text);
   font-family: 'Rainyhearts', monospace;
   font-size: calc(10 / 306 * 100vw);
-  padding: 2px 4px;
+  padding: 2px 6px;
   border-radius: 4px;
+  
+  /* THIS IS THE FIX: Explicitly allow clicks */
+  pointer-events: auto !important; 
+  z-index: 1000 !important; /* Force it to the very top layer */
   cursor: pointer;
-  z-index: 310;
-  pointer-events: auto;
 }
 
 .btn-mini-toggle:hover {
