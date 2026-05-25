@@ -684,20 +684,26 @@ export default function App() {
         queue
       </button>
 
-      {/* --- INSERT THE MINI BUTTON HERE --- */}
+      <div className="btn btn-exit" onClick={() => window.cupid?.close()} />
+      <div className="btn btn-settings" onClick={() => setShowSettings((v) => !v)} />
+
+      {/* --- UPDATED MINI BUTTON --- */}
       <button 
-        className="btn-queue"
-        style={{ left: '10px', right: 'auto', bottom: '10px', top: 'auto', zIndex: 310 }} 
+        className="btn-mini-toggle"
         onClick={() => {
           const nextState = !isMiniMode;
           setIsMiniMode(nextState);
           window.cupid?.toggleMiniPlayer(nextState);
         }}
       >
-        {isMiniMode ? 'maximize' : 'mini'}
+        {isMiniMode ? 'max' : 'mini'}
       </button>
-      {/* ----------------------------------- */}
+      {/* --------------------------- */}
 
+      <button 
+        className={`btn-queue ${showQueue ? 'active' : ''}`}
+        onClick={() => setShowQueue(v => !v)}
+      >
       {showQueue && (
         <div className="queue-panel">
           <div className="queue-panel-inner">
@@ -828,24 +834,31 @@ export default function App() {
                       pick file & save
                     </button>
                     <button 
-  className="settings-theme-btn"
-  style={{ fontSize: '10px', background: '#5e72e4', color: '#fff' }}
-  onClick={async () => {
-    // Take the filename of the selected song (or just search for whatever you typed in the title box)
-    const searchTerm = newSongTitle || "my song"; 
-    const data = await window.cupid?.fetchSongMetadata(searchTerm);
-    
-    if (data) {
-      setNewSongTitle(data.title);
-      setNewSongArtist(data.artist);
-      setNewSongArt(data.art);
-    } else {
-      setSettingsError("Could not find metadata automatically!");
-    }
-  }}
->
-  magic tag ✨
-</button>
+                    className="settings-theme-btn"
+                    style={{ fontSize: '10px', background: '#5e72e4', color: '#fff', marginTop: '5px' }}
+                    onClick={async () => {
+                      // 1. Force the user to type a song name first
+                      const searchTerm = newSongTitle.trim(); 
+                      if (!searchTerm) {
+                        setSettingsError("Please type a song name in the Title box first!");
+                        return;
+                      }
+                      
+                      setSettingsError("Searching iTunes..."); 
+                      const data = await window.cupid?.fetchSongMetadata(searchTerm);
+                      
+                      if (data) {
+                        setNewSongTitle(data.title);
+                        setNewSongArtist(data.artist);
+                        setNewSongArt(data.art);
+                        setSettingsError(null); // Clear message on success
+                      } else {
+                        setSettingsError("Could not find metadata automatically!");
+                      }
+                    }}
+                  >
+                    magic tag ✨
+                  </button>
                   </div>
                 </div>
               )

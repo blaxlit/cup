@@ -837,6 +837,7 @@
 .player.mini-mode .queue-panel,
 .player.mini-mode .settings-panel,
 .player.mini-mode .progress-seek,
+.player.mini-mode .btn-queue /* <-- Add this line to hide the queue! */
 .player.mini-mode .volume-hover-zone {
   display: none !important; /* Hide everything except the record! */
 }
@@ -852,3 +853,38 @@
 .player.mini-mode {
   -webkit-app-region: drag; 
 } 
+
+/* --- MINI TOGGLE BUTTON --- */
+.btn-mini-toggle {
+  position: absolute;
+  top: calc(9 / 306 * 100vw);
+  right: calc(30 / 306 * 100vw); /* Places it just left of the settings gear */
+  background: var(--color-primary);
+  border: 1px solid var(--color-secondary);
+  color: var(--color-panel-text);
+  font-family: 'Rainyhearts', monospace;
+  font-size: calc(10 / 306 * 100vw);
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 310;
+  pointer-events: auto;
+}
+
+.btn-mini-toggle:hover {
+  background: var(--color-panel-text);
+  color: var(--color-primary);
+}
+
+/* In mini-mode, hide it until hovered to keep the UI clean */
+.player.mini-mode .btn-mini-toggle {
+  top: 5px;
+  right: 5px;
+  font-size: 12px;
+  opacity: 0; 
+  transition: opacity 0.2s;
+}
+
+.player.mini-mode:hover .btn-mini-toggle {
+  opacity: 1; /* Shows up when you mouse over the record player */
+}
