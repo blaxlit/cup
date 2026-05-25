@@ -651,6 +651,28 @@ ipcMain.handle('get-stream-url-by-id', (_e, videoId) => {
   return streamUrlForVideoId(videoId);
 });
 
+ipcMain.handle('fetch-song-metadata', async (_e, searchTerm) => {
+  try {
+    // iTunes API query
+    const encoded = encodeURIComponent(searchTerm);
+    const response = await net.fetch(`https://itunes.apple.com/search?term=${encoded}&media=music&limit=1`);
+    const data = await response.json();
+    
+    if (data.results && data.results.length > 0) {
+      const result = data.results[0];
+      return {
+        title: result.trackName,
+        artist: result.artistName,
+        art: result.artworkUrl100.replace('100x100bb.jpg', '500x500bb.jpg') // Get higher quality
+      };
+    }
+    return null;
+  } catch (err) {
+    console.error('[metadata fetch error]', err);
+    return null;
+  }
+});
+
 ipcMain.handle('youtube-fetch-playlist', async (_e, url) => {
   try {
     return await fetchYouTubePlaylistViaYtDlp(url);

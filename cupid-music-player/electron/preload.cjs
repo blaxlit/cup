@@ -20,4 +20,5 @@ contextBridge.exposeInMainWorld('cupid', {
   youtubeFetchPlaylist: (url) => ipcRenderer.invoke('youtube-fetch-playlist', url),
   youtubeOauthStart: (opts) => ipcRenderer.invoke('youtube-oauth-start', opts),
   youtubeOauthCancel: () => ipcRenderer.invoke('youtube-oauth-cancel'),
+  fetchSongMetadata: (term) => ipcRenderer.invoke('fetch-song-metadata', term),
 });

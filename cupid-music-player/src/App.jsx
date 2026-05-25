@@ -791,6 +791,25 @@ export default function App() {
                     >
                       pick file & save
                     </button>
+                    <button 
+  className="settings-theme-btn"
+  style={{ fontSize: '10px', background: '#5e72e4', color: '#fff' }}
+  onClick={async () => {
+    // Take the filename of the selected song (or just search for whatever you typed in the title box)
+    const searchTerm = newSongTitle || "my song"; 
+    const data = await window.cupid?.fetchSongMetadata(searchTerm);
+    
+    if (data) {
+      setNewSongTitle(data.title);
+      setNewSongArtist(data.artist);
+      setNewSongArt(data.art);
+    } else {
+      setSettingsError("Could not find metadata automatically!");
+    }
+  }}
+>
+  magic tag ✨
+</button>
                   </div>
                 </div>
               )
