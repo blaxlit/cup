@@ -838,56 +838,23 @@
 .player.mini-mode .settings-panel,
 .player.mini-mode .progress-seek,
 .player.mini-mode .volume-hover-zone,
-.player.mini-mode .btn-queue /* Hides the queue button in mini mode! */
+.player.mini-mode .btn-queue 
 {
+  /* The button you need to click is NOT in this list anymore! */
   display: none !important; 
 }
 
-/* Re-center the record player in the tiny square */
-.player.mini-mode .record-player {
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) scale(1.2) !important;
+/* Keep the mini button visible and clickable */
+.player.mini-mode .btn-mini-toggle {
+  display: block !important;
+  opacity: 1 !important;
+  z-index: 9999 !important;
 }
 
-.player.mini-mode {
-  -webkit-app-region: drag; 
-}
-
-/* --- MINI TOGGLE BUTTON --- */
 .btn-mini-toggle {
   position: absolute;
-  top: calc(31 / 306 * 100vw);
-  right: calc(155 / 306 * 100vw); /* Adjusted to sit safely left of Settings */
-  
-  background: var(--color-primary);
-  border: 1px solid var(--color-secondary);
-  color: var(--color-panel-text);
-  font-family: 'Rainyhearts', monospace;
-  font-size: calc(10 / 306 * 100vw);
-  padding: 2px 6px;
-  border-radius: 4px;
-  
-  /* THIS IS THE FIX: Explicitly allow clicks */
-  pointer-events: auto !important; 
-  z-index: 1000 !important; /* Force it to the very top layer */
-  cursor: pointer;
-}
-
-.btn-mini-toggle:hover {
-  background: var(--color-panel-text);
-  color: var(--color-primary);
-}
-
-/* In mini-mode, hide it until hovered to keep the UI clean */
-.player.mini-mode .btn-mini-toggle {
-  top: 5px;
-  right: 5px;
-  font-size: 12px;
-  opacity: 0; 
-  transition: opacity 0.2s;
-}
-
-.player.mini-mode:hover .btn-mini-toggle {
-  opacity: 1; /* Shows up when you mouse over the window */
+  top: calc(275 / 306 * 100vw); /* Adjust this to match your settings icon row */
+  right: calc(65 / 306 * 100vw);
+  z-index: 1000;
+  pointer-events: auto !important; /* Forces the click to register */
 }
