@@ -837,9 +837,10 @@
 .player.mini-mode .queue-panel,
 .player.mini-mode .settings-panel,
 .player.mini-mode .progress-seek,
-.player.mini-mode .btn-queue /* <-- Add this line to hide the queue! */
-.player.mini-mode .volume-hover-zone {
-  display: none !important; /* Hide everything except the record! */
+.player.mini-mode .volume-hover-zone,
+.player.mini-mode .btn-queue /* Hides the queue button in mini mode! */
+{
+  display: none !important; 
 }
 
 /* Re-center the record player in the tiny square */
@@ -849,10 +850,9 @@
   transform: translate(-50%, -50%) scale(1.2) !important;
 }
 
-/* Ensure the app is draggable from anywhere in mini mode */
 .player.mini-mode {
   -webkit-app-region: drag; 
-} 
+}
 
 /* --- MINI TOGGLE BUTTON --- */
 .btn-mini-toggle {
@@ -886,5 +886,5 @@
 }
 
 .player.mini-mode:hover .btn-mini-toggle {
-  opacity: 1; /* Shows up when you mouse over the record player */
+  opacity: 1; /* Shows up when you mouse over the window */
 }

@@ -661,33 +661,13 @@ export default function App() {
         )}
       </div>
 
-      <div className="btn btn-playmode" onClick={cyclePlayMode} title={playMode} />
+     <div className="btn btn-playmode" onClick={cyclePlayMode} title={playMode} />
       <div className="btn btn-minimize" onClick={() => window.cupid?.minimize()} />
       <div className="btn btn-window" onClick={() => window.cupid?.maximize()} />
       <div className="btn btn-exit" onClick={() => window.cupid?.close()} />
       <div className="btn btn-settings" onClick={() => setShowSettings((v) => !v)} />
 
-      <button 
-        className={`btn-queue ${showQueue ? 'active' : ''}`}
-        onClick={() => setShowQueue(v => !v)}
-      >
-        queue
-      </button>
-      
-      <div className="btn btn-exit" onClick={() => window.cupid?.close()} />
-      <div className="btn btn-settings" onClick={() => setShowSettings((v) => !v)} />
-
-      <button 
-        className={`btn-queue ${showQueue ? 'active' : ''}`}
-        onClick={() => setShowQueue(v => !v)}
-      >
-        queue
-      </button>
-
-      <div className="btn btn-exit" onClick={() => window.cupid?.close()} />
-      <div className="btn btn-settings" onClick={() => setShowSettings((v) => !v)} />
-
-      {/* --- UPDATED MINI BUTTON --- */}
+      {/* --- MINI TOGGLE BUTTON --- */}
       <button 
         className="btn-mini-toggle"
         onClick={() => {
@@ -698,12 +678,14 @@ export default function App() {
       >
         {isMiniMode ? 'max' : 'mini'}
       </button>
-      {/* --------------------------- */}
 
       <button 
         className={`btn-queue ${showQueue ? 'active' : ''}`}
         onClick={() => setShowQueue(v => !v)}
       >
+        queue
+      </button>
+
       {showQueue && (
         <div className="queue-panel">
           <div className="queue-panel-inner">
@@ -837,7 +819,7 @@ export default function App() {
                     className="settings-theme-btn"
                     style={{ fontSize: '10px', background: '#5e72e4', color: '#fff', marginTop: '5px' }}
                     onClick={async () => {
-                      // 1. Force the user to type a song name first
+                      // Force the user to type a song name first
                       const searchTerm = newSongTitle.trim(); 
                       if (!searchTerm) {
                         setSettingsError("Please type a song name in the Title box first!");
