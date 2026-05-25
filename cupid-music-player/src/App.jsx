@@ -603,6 +603,7 @@ export default function App() {
         <span className="time-remaining">{formatTime(duration - currentTime)}</span>
       </div>
 
+      <div className="drag-region" />
       <div className="resize-handle top-left" onMouseDown={resizeTL} />
       <div className="resize-handle top-right" onMouseDown={resizeTR} />
       <div className="resize-handle bottom-left" onMouseDown={resizeBL} />
@@ -666,10 +667,7 @@ export default function App() {
       <div className="btn btn-exit" onClick={() => window.cupid?.close()} />
       <div className="btn btn-settings" onClick={() => setShowSettings((v) => !v)} />
 
-      {/* Settings icon is usually the last button in your assets */}
-      <img src={assets.settings} className="layer layer-ui settings-layer" alt="" draggable={false} />
-
-      {/* --- MINI TOGGLE BUTTON: Now positioned right here --- */}
+      {/* --- MINI TOGGLE BUTTON --- */}
       <button 
         className="btn-mini-toggle"
         onClick={() => {
@@ -680,9 +678,6 @@ export default function App() {
       >
         {isMiniMode ? 'max' : 'mini'}
       </button>
-
-      {/* Drag region must be last so it doesn't block buttons */}
-      <div className="drag-region" />
 
       <button 
         className={`btn-queue ${showQueue ? 'active' : ''}`}
