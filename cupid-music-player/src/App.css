@@ -859,9 +859,7 @@
   transform: translate(-50%, -50%) scale(1.2) !important;
 }
 
-.player.mini-mode {
-  -webkit-app-region: drag; 
-}
+
 
 /* --- MINI TOGGLE BUTTON --- */
 .btn-mini-toggle {
@@ -907,6 +905,7 @@
   /* FORCE IT TO BE CLICKABLE */
   z-index: 99999 !important; 
   pointer-events: auto !important; 
+  -webkit-app-region: no-drag !important; /* <--- THIS IS THE MAGIC FIX */
 }
 
 /* Show the button when hovering over the mini player */
@@ -916,5 +915,5 @@
 
 /* Ensure the background drag region doesn't block the button */
 .drag-region {
-  pointer-events: none; /* Make sure this line exists! */
+  pointer-events: none; 
 }
