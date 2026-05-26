@@ -897,3 +897,24 @@
 .player.mini-mode:hover .btn-mini-toggle {
   opacity: 1; /* Shows up when you mouse over the window */
 }
+
+/* Keep the mini button visible and clickable in mini mode */
+.player.mini-mode .btn-mini-toggle {
+  display: block !important;
+  opacity: 0; 
+  transition: opacity 0.2s;
+  
+  /* FORCE IT TO BE CLICKABLE */
+  z-index: 99999 !important; 
+  pointer-events: auto !important; 
+}
+
+/* Show the button when hovering over the mini player */
+.player.mini-mode:hover .btn-mini-toggle {
+  opacity: 1 !important;
+}
+
+/* Ensure the background drag region doesn't block the button */
+.drag-region {
+  pointer-events: none; /* Make sure this line exists! */
+}

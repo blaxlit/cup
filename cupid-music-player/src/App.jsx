@@ -514,6 +514,17 @@ export default function App() {
                 cancel
               </button>
               
+<button 
+        className="btn-mini-toggle"
+        onClick={() => {
+          const nextState = !isMiniMode;
+          setIsMiniMode(nextState);
+          window.cupid?.toggleMiniPlayer(nextState);
+        }}
+      >
+        {isMiniMode ? 'max' : 'mini'}
+      </button>
+
               <button 
                 className="btn-edit-action btn-edit-save" 
                 onClick={async () => {
