@@ -425,12 +425,11 @@ export default function App() {
         if (action === 'prev') prev();
       } 
       
-      // 2. If looking at YouTube, control the YouTube stream
+      // 2. If looking at YouTube, control the streaming player
       else if (musicService === 'youtube') {
-        // Replace these with your actual YouTube function names!
-        if (action === 'play-pause') streamTogglePlay(); 
-        if (action === 'next') streamNextTrack();
-        if (action === 'prev') streamPrevTrack();
+        if (action === 'play-pause') spotifyTogglePlay(); 
+        if (action === 'next') spotifyNext();
+        if (action === 'prev') spotifyPrev();
       }
       
     });
