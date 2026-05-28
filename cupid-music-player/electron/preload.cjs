@@ -22,7 +22,10 @@ contextBridge.exposeInMainWorld('cupid', {
   youtubeOauthCancel: () => ipcRenderer.invoke('youtube-oauth-cancel'),
   fetchSongMetadata: (term) => ipcRenderer.invoke('fetch-song-metadata', term),
   onMediaAction: (callback) => {
-    ipcRenderer.on('media-action', (_e, action) => callback(action));
+    const handler = (_e, action) => callback(action);
+    ipcRenderer.on('media-action', handler);
+    // Return a function so React can clean it up!
+    return () => ipcRenderer.off('media-action', handler); 
   },
   toggleMiniPlayer: (isMini) => ipcRenderer.send('toggle-mini-player', isMini),
 });

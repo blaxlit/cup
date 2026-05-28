@@ -412,16 +412,34 @@ export default function App() {
 
   }, [track.title, needleLifted]);
 
-  // Listen for physical keyboard media keys
+ // Listen for physical keyboard media keys
   useEffect(() => {
     if (!window.cupid?.onMediaAction) return;
     
-    window.cupid.onMediaAction((action) => {
-      if (action === 'play-pause') togglePlay();
-      if (action === 'next') next();
-      if (action === 'prev') prev();
+    const cleanup = window.cupid.onMediaAction((action) => {
+      
+      // 1. If looking at local files, control local audio
+      if (musicService === 'local') {
+        if (action === 'play-pause') togglePlay();
+        if (action === 'next') next();
+        if (action === 'prev') prev();
+      } 
+      
+      // 2. If looking at YouTube, control the YouTube stream
+      else if (musicService === 'youtube') {
+        // Replace these with your actual YouTube function names!
+        if (action === 'play-pause') streamTogglePlay(); 
+        if (action === 'next') streamNextTrack();
+        if (action === 'prev') streamPrevTrack();
+      }
+      
     });
-  }, [togglePlay, next, prev]);
+
+    // Clean up the listener when the app refreshes
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [musicService, togglePlay, next, prev]); // Add your stream functions to this array if React complains!
 
   const resizeTL = useResize('top-left');
   const resizeTR = useResize('top-right');
