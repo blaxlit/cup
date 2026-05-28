@@ -418,19 +418,12 @@ export default function App() {
     
     const cleanup = window.cupid.onMediaAction((action) => {
       
-      // 1. If looking at local files, control local audio
-      if (musicService === 'local') {
-        if (action === 'play-pause') togglePlay();
-        if (action === 'next') next();
-        if (action === 'prev') prev();
-      } 
-      
-      // 2. If looking at YouTube, control the streaming player
-      else if (musicService === 'youtube') {
-        if (action === 'play-pause') spotifyTogglePlay(); 
-        if (action === 'next') spotifyNext();
-        if (action === 'prev') spotifyPrev();
-      }
+      // Because `togglePlay`, `next`, and `prev` are extracted directly from the
+      // active `player` object, they automatically control whichever source 
+      // (local or youtube) is currently active! No need for if/else checks.
+      if (action === 'play-pause') togglePlay();
+      if (action === 'next') next();
+      if (action === 'prev') prev();
       
     });
 
@@ -438,7 +431,7 @@ export default function App() {
     return () => {
       if (cleanup) cleanup();
     };
-  }, [musicService, togglePlay, next, prev]); // Add your stream functions to this array if React complains!
+  }, [togglePlay, next, prev]);
 
   const resizeTL = useResize('top-left');
   const resizeTR = useResize('top-right');
@@ -952,5 +945,3 @@ export default function App() {
     </div>
   );
 }
-
-#fix
